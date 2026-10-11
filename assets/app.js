@@ -187,14 +187,20 @@
     if (document.fonts && document.fonts.ready) document.fonts.ready.then(syncStackHeights);
   }
 
-  // The numbers run up from zero as the band rises into view, keyed to scroll
-  // position rather than a timer, and never run back down. The real figure
-  // stays in the markup for screen readers and is what shows with motion off.
+  // The numbers run up from zero once the band is properly in view. Timed
+  // rather than tied to scroll position: a mouse wheel moves the page in
+  // ~100px steps, so scroll-keyed numbers jumped in visible steps, and a
+  // reader who stopped mid-band was left looking at a half-counted figure.
+  // The real figure stays in the markup for screen readers and is what shows
+  // with motion off.
   var countBand = document.querySelector('.stats');
   var counters = [];
   var countDone = false;
+  var countStart = 0;
+  var COUNT_MS = 1600;
 
   function formatCount(c, value) {
+    if (c.unit && value < 1e3) return Math.round(value) + c.plus;
     if (c.unit === 'M') return (value >= 1e6 ? Math.round(value / 1e6) + 'M' : Math.round(value / 1e3) + 'K') + c.plus;
     if (c.unit === 'K') return Math.round(value / 1e3) + 'K' + c.plus;
     return (c.comma ? Math.round(value).toLocaleString('en-US') : String(Math.round(value))) + c.plus;
@@ -216,7 +222,9 @@
       real.textContent = text;
       b.appendChild(shown);
       b.appendChild(real);
-      counters.push({ el: shown, text: text, target: target, unit: unit, plus: m[3], comma: m[1].indexOf(',') > -1, reached: 0 });
+      var c = { el: shown, text: text, target: target, unit: unit, plus: m[3], comma: m[1].indexOf(',') > -1 };
+      shown.textContent = formatCount(c, 0);
+      counters.push(c);
     });
   }
 
@@ -225,17 +233,26 @@
     counters.forEach(function (c) { c.el.textContent = c.text; });
   }
 
-  function updateCounts() {
-    if (countDone || !counters.length) return;
+  function tickCounts(now) {
+    if (countDone) return;
     if (motionOff()) { finishCounts(); return; }
-    var top = countBand.getBoundingClientRect().top;
-    var p = clamp01((window.innerHeight - top) / (window.innerHeight * 0.5));
-    var eased = 1 - Math.pow(1 - p, 3);
-    counters.forEach(function (c) {
-      c.reached = Math.max(c.reached, eased);
-      c.el.textContent = c.reached >= 1 ? c.text : formatCount(c, c.target * c.reached);
-    });
-    if (p >= 1) finishCounts();
+    var t = clamp01((now - countStart) / COUNT_MS);
+    var eased = 1 - Math.pow(1 - t, 4);
+    counters.forEach(function (c) { c.el.textContent = formatCount(c, c.target * eased); });
+    if (t >= 1) finishCounts();
+    else requestAnimationFrame(tickCounts);
+  }
+
+  function updateCounts() {
+    if (countDone || countStart || !counters.length) return;
+    if (motionOff()) { finishCounts(); return; }
+    var r = countBand.getBoundingClientRect();
+    // Already scrolled past (a deep link, or a jump from the nav): no one is
+    // watching, so show the real figures rather than count off-screen.
+    if (r.bottom < 0) { finishCounts(); return; }
+    if (r.top > window.innerHeight * 0.85) return;
+    countStart = performance.now();
+    requestAnimationFrame(tickCounts);
   }
 
   function updateParallax() {
