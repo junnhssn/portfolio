@@ -193,35 +193,39 @@
   // reader who stopped mid-band was left looking at a half-counted figure.
   // The real figure stays in the markup for screen readers and is what shows
   // with motion off.
-  var countBand = document.querySelector('.stats');
+  var countBand = document.querySelector('.numbers-line');
   var counters = [];
   var countDone = false;
   var countStart = 0;
   var COUNT_MS = 1600;
 
   function formatCount(c, value) {
-    if (c.unit && value < 1e3) return Math.round(value) + c.plus;
-    if (c.unit === 'M') return (value >= 1e6 ? Math.round(value / 1e6) + 'M' : Math.round(value / 1e3) + 'K') + c.plus;
+    if (c.unit && Math.round(value) < 1e3) return Math.round(value) + c.plus;
+    if (c.unit === 'M') {
+      var k = Math.round(value / 1e3);
+      return (k >= 1e3 ? Math.round(value / 1e6) + 'M' : k + 'K') + c.plus;
+    }
     if (c.unit === 'K') return Math.round(value / 1e3) + 'K' + c.plus;
     return (c.comma ? Math.round(value).toLocaleString('en-US') : String(Math.round(value))) + c.plus;
   }
 
   function setupCounters() {
     if (!countBand || motionOff()) return;
-    countBand.querySelectorAll('.stat b').forEach(function (b) {
+    countBand.querySelectorAll('em').forEach(function (b) {
       var text = b.textContent.trim();
       var m = /^([\d,]+)([KM]?)(\+?)$/.exec(text);
       if (!m) return;
       var unit = m[2];
       var target = parseInt(m[1].replace(/,/g, ''), 10) * (unit === 'M' ? 1e6 : unit === 'K' ? 1e3 : 1);
       b.innerHTML = '';
+      b.classList.add('count');
+      var real = document.createElement('span');
+      real.className = 'count-real';
+      real.textContent = text;
       var shown = document.createElement('span');
       shown.setAttribute('aria-hidden', 'true');
-      var real = document.createElement('span');
-      real.className = 'visually-hidden';
-      real.textContent = text;
-      b.appendChild(shown);
       b.appendChild(real);
+      b.appendChild(shown);
       var c = { el: shown, text: text, target: target, unit: unit, plus: m[3], comma: m[1].indexOf(',') > -1 };
       shown.textContent = formatCount(c, 0);
       counters.push(c);

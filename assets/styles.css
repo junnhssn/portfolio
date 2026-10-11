@@ -504,18 +504,25 @@ body.a11y-motion .cursor-glow { display: none !important; }
 @keyframes marquee { to { transform: translateX(-100%); } }
 
 /* ── Stat band ────────────────────────────────────────────────────────── */
-.stats { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: var(--gap); }
-@media (max-width: 1150px) { .stats { grid-template-columns: repeat(3, minmax(0, 1fr)); row-gap: clamp(1.4rem, 3vw, 2rem); } }
-@media (max-width: 720px) { .stats { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
-
-.stat { border-top: 2px solid var(--accent); padding-top: .85rem; }
-.stat b {
-  display: block;
-  font-family: var(--font-display); font-weight: 500;
-  font-size: clamp(2.1rem, 5.5vw, 3.4rem); line-height: 1;
-  letter-spacing: -.03em;
+/* The figures read as part of a sentence rather than a row of tiles: a row of
+   big number, small label, accent rule is the most templated block a page
+   can have. */
+.numbers-line {
+  font-family: var(--font-display); font-weight: 400;
+  font-size: clamp(1.6rem, 3.4vw, 2.9rem); line-height: 1.24; letter-spacing: -.02em;
+  max-width: 30ch; margin-top: 1.4rem; text-wrap: pretty;
 }
-.stat > span { display: block; margin-top: .4rem; font-size: .84rem; color: var(--text-muted); }
+.numbers-line em {
+  font-style: italic; color: var(--accent);
+  font-size: 1.5em; line-height: .8; letter-spacing: -.03em;
+  font-variation-settings: 'SOFT' 60, 'WONK' 1;
+  font-variant-numeric: tabular-nums;
+}
+/* While a figure counts, its final text stays in place, invisible, holding
+   the width, so the sentence never re-wraps under the moving digits. */
+.count { display: inline-grid; }
+.count > * { grid-area: 1 / 1; }
+.count-real { opacity: 0; }
 
 /* ── Selected work: the stack ───────────────────────────────────────────
    Every card sticks just under the nav, each a step lower than the last, and
@@ -1223,7 +1230,7 @@ body.a11y-motion .wi-preview img { transition: none; transform: none; }
 }
 
 /* Figures read as data, so they should not jiggle as the digits change. */
-.stat b, .metric b, .feature-metrics div b { font-variant-numeric: tabular-nums; }
+.metric b, .feature-metrics div b { font-variant-numeric: tabular-nums; }
 
 /* Stops a single word dangling on its own final line. */
 p, .tile p, .section-intro { text-wrap: pretty; }
