@@ -255,59 +255,26 @@
     document.addEventListener('pointerleave', function () { glow.classList.remove('is-on'); });
   }
 
-  /* ── Other work: cursor preview ────────────────────────────────────── */
-  // One shared image that trails the pointer over the index rows. It eases
-  // toward the cursor; with motion off it simply sits beside it. Touch and
-  // narrow screens get inline thumbnails from the CSS instead.
-  var preview = document.querySelector('.wi-preview');
-  var workIndex = document.querySelector('.work-index');
-  if (preview && workIndex && finePointer.matches) {
-    var pImg = preview.querySelector('img');
-    var tx = 0, ty = 0, px = 0, py = 0, previewRunning = false, preloaded = false;
-
-    function paintPreview() {
-      var snap = motionOff();
-      px = snap ? tx : px + (tx - px) * 0.18;
-      py = snap ? ty : py + (ty - py) * 0.18;
-      preview.style.transform = 'translate3d(' + px.toFixed(1) + 'px,' + py.toFixed(1) + 'px,0)';
-      if (!snap && (Math.abs(tx - px) > 0.5 || Math.abs(ty - py) > 0.5)) {
-        requestAnimationFrame(paintPreview);
-      } else {
-        previewRunning = false;
-      }
-    }
-
-    function aimPreview(event) {
-      // Above the cursor, so it never covers the row being read; below it
-      // only when there is no room at the top of the screen.
-      var w = preview.offsetWidth, h = pImg.offsetHeight || 200;
-      tx = Math.max(16, Math.min(event.clientX - w * 0.35, window.innerWidth - w - 16));
-      ty = event.clientY - h - 48;
-      if (ty < 72) ty = Math.min(event.clientY + 36, window.innerHeight - h - 16);
-      if (!previewRunning) { previewRunning = true; requestAnimationFrame(paintPreview); }
-    }
-
-    workIndex.querySelectorAll('.wi-row[data-preview]').forEach(function (row) {
-      row.addEventListener('pointerenter', function (event) {
+  /* ── Other work panels ─────────────────────────────────────────────── */
+  // The panel under the pointer or keyboard focus opens, and stays open
+  // after the pointer leaves. Hover waits a beat, so sweeping across the
+  // row on the way somewhere else does not set every panel moving.
+  var panels = document.querySelector('.panels');
+  if (panels) {
+    var panelTimer = null;
+    var openPanel = function (li) {
+      clearTimeout(panelTimer);
+      [].forEach.call(panels.children, function (p) { p.classList.toggle('is-open', p === li); });
+    };
+    [].forEach.call(panels.children, function (li) {
+      li.addEventListener('pointerenter', function (event) {
         if (event.pointerType === 'touch') return;
-        if (!preloaded) {
-          preloaded = true;
-          workIndex.querySelectorAll('.wi-row[data-preview]').forEach(function (r) {
-            new Image().src = r.getAttribute('data-preview');
-          });
-        }
-        var thumb = row.querySelector('.wi-thumb');
-        pImg.src = row.getAttribute('data-preview');
-        preview.classList.toggle('is-left', !!thumb && thumb.classList.contains('wi-thumb--left'));
-        preview.classList.toggle('is-whole', !!thumb && thumb.classList.contains('wi-thumb--whole'));
-        aimPreview(event);
-        // Appear at the cursor rather than flying in from the last position.
-        if (!preview.classList.contains('is-on')) { px = tx; py = ty; }
-        preview.classList.add('is-on');
+        clearTimeout(panelTimer);
+        panelTimer = setTimeout(function () { openPanel(li); }, 110);
       });
-      row.addEventListener('pointermove', aimPreview);
+      li.addEventListener('pointerleave', function () { clearTimeout(panelTimer); });
+      li.addEventListener('focusin', function () { openPanel(li); });
     });
-    workIndex.addEventListener('pointerleave', function () { preview.classList.remove('is-on'); });
   }
 
   /* ── Name entrance ─────────────────────────────────────────────────── */
@@ -507,6 +474,105 @@
 
   // Images settling can change what is on screen, so sweep again once loaded.
   window.addEventListener('load', observeReveals);
+
+  /* ── Pause on the hero ─────────────────────────────────────────────── */
+  // Hold still on the opening line for a couple of seconds and a pen circles
+  // "overthink" and leaves a note beside it. Once per visit. Pointer movement
+  // does not reset the wait, because people move the mouse while they read.
+  var ponder = document.querySelector('.ponder');
+  var ponderWord = ponder && [].filter.call(
+    document.querySelectorAll('.hero-hook em'),
+    function (em) { return em.textContent.trim() === 'overthink'; }
+  )[0];
+
+  if (ponder && ponderWord) {
+    var ponderTimer = null;
+    var ponderShown = false;
+    var loop = ponder.querySelector('.ponder-loop');
+    var arrowPath = ponder.querySelector('.ponder-arrow path');
+    var note = ponder.querySelector('.ponder-note');
+    var hook = ponderWord.closest('.hero-hook');
+    var portrait = document.querySelector('.portrait-frame');
+
+    var placePonder = function () {
+      var box = ponder.getBoundingClientRect();
+      var w = ponderWord.getBoundingClientRect();
+      // An ellipse only clears a word's corners when it is drawn well outside
+      // the word's box, and italic letters overhang that box on both sides.
+      var lw = w.width + 26, lh = w.height + 16;
+      var lx = w.left - box.left - 13, ly = w.top - box.top - 8;
+      loop.style.cssText = 'left:' + lx + 'px;top:' + ly + 'px;width:' + lw + 'px;height:' + lh + 'px';
+
+      // The note goes after the end of the word's line, so find where that
+      // line actually stops.
+      var range = document.createRange();
+      range.selectNodeContents(hook);
+      var lineEnd = w.right;
+      [].forEach.call(range.getClientRects(), function (r) {
+        var mid = r.top + r.height / 2;
+        if (mid > w.top && mid < w.bottom) lineEnd = Math.max(lineEnd, r.right);
+      });
+
+      var limit = window.innerWidth - 16;
+      if (portrait) {
+        var p = portrait.getBoundingClientRect();
+        if (p.left > w.right && p.top < w.bottom && p.bottom > w.top) limit = p.left - 24;
+      }
+      var nw = note.offsetWidth, nh = note.offsetHeight;
+      var nx = lineEnd + 40;
+      var room = nx + nw <= limit;
+      ponder.classList.toggle('no-room', !room);
+      if (!room) return;
+
+      var ny = w.top - box.top + (w.height - nh) / 2 - 6;
+      note.style.left = (nx - box.left) + 'px';
+      note.style.top = ny + 'px';
+
+      // An arc from the note, up over the rest of the line, into the circle.
+      var x1 = nx - box.left - 6, y1 = ny + nh * 0.45;
+      var x2 = lx + lw - 6, y2 = ly + lh * 0.18;
+      var cx = (x1 + x2) / 2, cy = Math.min(y1, y2) - 12;
+      var dx = x2 - cx, dy = y2 - cy, len = Math.sqrt(dx * dx + dy * dy) || 1;
+      var ux = dx / len, uy = dy / len, head = 8;
+      var hx1 = x2 - head * (ux * 0.88 - uy * 0.47), hy1 = y2 - head * (uy * 0.88 + ux * 0.47);
+      var hx2 = x2 - head * (ux * 0.88 + uy * 0.47), hy2 = y2 - head * (uy * 0.88 - ux * 0.47);
+      arrowPath.setAttribute('d',
+        'M' + x1.toFixed(1) + ' ' + y1.toFixed(1) +
+        'Q' + cx.toFixed(1) + ' ' + cy.toFixed(1) + ' ' + x2.toFixed(1) + ' ' + y2.toFixed(1) +
+        'M' + hx1.toFixed(1) + ' ' + hy1.toFixed(1) + 'L' + x2.toFixed(1) + ' ' + y2.toFixed(1) +
+        'L' + hx2.toFixed(1) + ' ' + hy2.toFixed(1));
+    };
+
+    var heroInView = function () {
+      var r = hook.getBoundingClientRect();
+      return currentView === 'home' && r.bottom > 60 && r.top < window.innerHeight;
+    };
+
+    var showPonder = function () {
+      if (!heroInView()) { armPonder(); return; }
+      placePonder();
+      ponder.classList.add('is-on');
+      ponderShown = true;
+    };
+
+    var armPonder = function () {
+      if (ponderShown) return;
+      clearTimeout(ponderTimer);
+      ponderTimer = setTimeout(showPonder, 2400);
+    };
+
+    ['scroll', 'keydown', 'touchmove', 'wheel'].forEach(function (type) {
+      window.addEventListener(type, armPonder, { passive: true });
+    });
+    // Text reflows after a late font, a zoom or a resize; measure again or
+    // the drawing is left pinned to where the word used to be.
+    var replace = function () { if (ponderShown) placePonder(); };
+    window.addEventListener('resize', replace);
+    if (document.fonts) document.fonts.ready.then(replace);
+    if ('ResizeObserver' in window) new ResizeObserver(replace).observe(hook);
+    if (document.readyState === 'complete') armPonder();
+    else window.addEventListener('load', armPonder);
+  }
 
   /* ── Email composer ────────────────────────────────────────────────── */
   // GitHub Pages serves static files only, so there is no server to post to.

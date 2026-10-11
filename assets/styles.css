@@ -294,13 +294,27 @@ html[data-theme="dark"] .icon-sun, html[data-theme="light"] .icon-moon { display
 }
 .hero-hook em { font-style: italic; color: var(--accent); font-variation-settings: 'SOFT' 60, 'WONK' 1; }
 
-.hero-fn-mark { color: var(--accent); font-size: .6em; margin-left: .05em; line-height: 0; }
-.hero-body .hero-fn {
-  margin-top: -.2rem;
-  font-family: var(--font-display); font-style: italic; font-size: 1.02rem;
+/* The pen note on "overthink". app.js positions every part in pixels
+   relative to .hero-body and adds .is-on after a pause on the hero. Where
+   there is no room beside the line (phones) only the circle is drawn. */
+.hero-body { position: relative; }
+.ponder { position: absolute; inset: 0; pointer-events: none; z-index: 1; }
+.ponder svg { position: absolute; overflow: visible; fill: none; stroke: var(--accent); stroke-linecap: round; stroke-linejoin: round; }
+.ponder path { vector-effect: non-scaling-stroke; stroke-dasharray: 1; stroke-dashoffset: 1; }
+.ponder-loop { stroke-width: 2; }
+.ponder-arrow { inset: 0; width: 100%; height: 100%; stroke-width: 1.6; }
+.ponder-note {
+  position: absolute; white-space: nowrap;
+  font-family: var(--font-display); font-style: italic; font-weight: 400;
+  font-size: clamp(.95rem, 1.35vw, 1.12rem); line-height: 1.2;
   font-variation-settings: 'SOFT' 100, 'WONK' 1;
   color: var(--accent);
+  opacity: 0; transform: rotate(-4deg) translateY(4px);
 }
+.ponder.is-on .ponder-loop path { stroke-dashoffset: 0; transition: stroke-dashoffset .85s var(--ease-out); }
+.ponder.is-on .ponder-arrow path { stroke-dashoffset: 0; transition: stroke-dashoffset .5s var(--ease-out) .7s; }
+.ponder.is-on .ponder-note { opacity: 1; transform: rotate(-4deg); transition: opacity .35s var(--ease-out) 1s, transform .45s var(--ease-out) 1s; }
+.ponder.no-room .ponder-arrow, .ponder.no-room .ponder-note { display: none; }
 
 /* Arched portrait on a blush ground, framed like the editorial references. */
 .portrait-frame { position: relative; justify-self: end; width: min(100%, 330px); }
@@ -1064,7 +1078,7 @@ body.a11y-motion .hero-name .n2 { opacity: 1 !important; animation: none !import
 
 /* ── Print ────────────────────────────────────────────────────────────── */
 @media print {
-  .nav, .a11y-fab, .a11y-panel, .lightbox, .compose, .case-back, .marquee, .decor, .stack-mark { display: none !important; }
+  .nav, .a11y-fab, .a11y-panel, .lightbox, .compose, .case-back, .marquee, .decor, .ponder, .stack-mark { display: none !important; }
   .stack-item { position: static !important; }
   body { background: #fff; color: #000; }
   body::after { display: none; }
@@ -1153,82 +1167,79 @@ body.a11y-motion .postcard { transform: rotate(-1deg) !important; }
   .pc-stamp { right: .6rem; }
   .pc-postmark { right: 4.6rem; }
 }
-/* ── Other work index ──────────────────────────────────────────────────
-   Six pieces as slim rows rather than two rows of picture cards, so the
-   section reads as a list you skim, not a wall you scroll past. Desktop
-   shows each picture in a preview that follows the cursor (app.js); phones
-   and touch screens, which have no hover, get a small inline thumbnail. */
-.work-index {
+/* ── Other work panels ──────────────────────────────────────────────────
+   On a desktop with a mouse the six sit side by side as slim violet
+   spines, and the one under the pointer or keyboard focus opens into a
+   card (app.js keeps the last one open). Everywhere else, including
+   without JavaScript, they are plain picture cards so nothing hides
+   behind hover. */
+.panels {
   list-style: none; margin: clamp(1.25rem, 3vw, 2rem) 0 0; padding: 0;
-  border-top: 1px solid var(--border);
+  display: grid; gap: 1rem; grid-template-columns: repeat(auto-fill, minmax(16rem, 1fr));
 }
-.work-index > li { border-bottom: 1px solid var(--border); }
-.wi-row {
-  display: grid; align-items: baseline;
-  grid-template-columns: minmax(9rem, 12rem) minmax(11rem, 15rem) 1fr 2rem;
-  gap: .4rem clamp(1rem, 2.5vw, 2rem);
-  padding: 1.15rem .9rem;
+.panel-in {
+  display: flex; flex-direction: column; height: 100%;
   color: inherit; text-decoration: none;
-  border-radius: var(--r-md);
-  transition: background-color .3s var(--ease);
+  background: var(--bg-card); border-radius: var(--r-md); overflow: hidden;
+  box-shadow: 0 0 0 1px var(--hairline);
 }
-a.wi-row:hover { background: var(--bg-soft); color: inherit; }
-.wi-kicker {
+a.panel-in:hover { color: inherit; }
+.panel-in:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+.panel-img { display: block; width: 100%; aspect-ratio: 16 / 10; object-fit: cover; object-position: center top; background: var(--bg-soft); }
+.panel-img--left { object-position: left top; }
+.panel-spine { display: none; }
+.panel-body { display: grid; align-content: start; gap: .35rem; padding: 1rem 1.15rem 1.25rem; }
+.panel-kicker {
   font-family: var(--font-wide); font-size: .6rem; font-weight: 700;
   letter-spacing: .15em; text-transform: uppercase; color: var(--accent);
 }
-.wi-title {
-  font-family: var(--font-display); font-size: 1.22rem; font-weight: 500;
-  letter-spacing: -.01em; line-height: 1.15; text-wrap: balance;
+.panel-title {
+  font-family: var(--font-display); font-size: 1.4rem; font-weight: 400;
+  letter-spacing: -.01em; line-height: 1.1; text-wrap: balance;
 }
-.wi-line { color: var(--text-muted); font-size: .92rem; max-width: var(--measure); text-wrap: pretty; }
-.wi-go {
-  justify-self: end; color: var(--accent); font-size: 1.1rem; line-height: 1;
-  transition: transform .3s var(--ease);
-}
-a.wi-row:hover .wi-go { transform: translateX(.35rem); }
-.wi-thumb { display: none; }
-
-@media (max-width: 760px), (hover: none) {
-  .wi-row {
-    grid-template-columns: 56px 1fr 1.25rem;
-    align-items: start; gap: .2rem 1rem; padding: 1rem .25rem;
-  }
-  .wi-thumb {
-    display: block; grid-row: 1 / span 3;
-    width: 56px; height: 56px; object-fit: cover; border-radius: var(--r-sm);
-    background: var(--bg-soft);
-  }
-  .wi-thumb--left { object-position: left center; }
-  .wi-thumb--whole { object-fit: contain; padding: 3px; }
-  .wi-kicker, .wi-title, .wi-line { grid-column: 2; }
-  .wi-go { grid-column: 3; grid-row: 1 / span 3; align-self: center; }
+.panel-line { color: var(--text-muted); font-size: .92rem; text-wrap: pretty; }
+.panel-go {
+  margin-top: .35rem;
+  font-family: var(--font-wide); font-size: .64rem; font-weight: 700;
+  letter-spacing: .12em; text-transform: uppercase; color: var(--accent);
 }
 
-/* One shared preview, fixed to the viewport and moved with transform only.
-   It sits at the end of <body>: inside a .reveal section the settled
-   filter would make the section, not the viewport, its containing block.
-   Hidden from assistive tech: each row already names the piece. */
-.wi-preview {
-  position: fixed; top: 0; left: 0; z-index: 30;
-  width: 280px; pointer-events: none;
-  opacity: 0; transform: translate3d(-999px, -999px, 0);
-  transition: opacity .25s var(--ease);
+@media (min-width: 861px) and (hover: hover) and (pointer: fine) {
+  html.js .panels { display: flex; gap: 8px; height: clamp(28rem, 36vw, 32rem); }
+  html.js .panel { flex: 1 1 0; min-width: 0; transition: flex-grow .65s var(--ease-out); }
+  html.js .panel.is-open { flex-grow: 4.6; }
+  html.js .panel-in { position: relative; display: block; background: var(--accent); box-shadow: none; }
+  html.js .panel-img {
+    position: absolute; inset: 0 0 auto 0; height: 100%; aspect-ratio: auto;
+    filter: grayscale(1) contrast(1.1); mix-blend-mode: multiply; opacity: .3;
+    transition: height .65s var(--ease-out), opacity .4s var(--ease);
+  }
+  html.js .panel.is-open .panel-in { background: var(--bg-card); box-shadow: 0 0 0 1px var(--hairline); }
+  html.js .panel.is-open .panel-img { height: 52%; filter: none; mix-blend-mode: normal; opacity: 1; }
+  /* Kicker and title run up the spine as two lines, read bottom to top. */
+  html.js .panel-spine {
+    display: flex; flex-direction: column; gap: .35rem;
+    position: absolute; left: 1rem; bottom: 1.25rem;
+    writing-mode: vertical-rl; text-orientation: sideways; transform: rotate(180deg);
+    color: var(--accent-ink); white-space: nowrap;
+    transition: opacity .3s var(--ease) .2s, visibility 0s .2s;
+  }
+  html.js .panel-spine span { font-family: var(--font-wide); font-size: .58rem; font-weight: 700; letter-spacing: .16em; text-transform: uppercase; }
+  html.js .panel-spine b { font-family: var(--font-display); font-size: 1.45rem; font-weight: 400; line-height: 1; }
+  html.js .panel.is-open .panel-spine { opacity: 0; visibility: hidden; transition: opacity .2s var(--ease), visibility 0s .2s; }
+  /* A fixed width, so the text does not reflow while the panel opens. */
+  html.js .panel-body {
+    position: absolute; left: 0; top: 52%; bottom: 0;
+    width: clamp(22rem, 33vw, 30rem); padding: 1.15rem 1.5rem;
+    opacity: 0; transition: opacity .2s var(--ease);
+  }
+  html.js .panel-title { font-size: clamp(1.6rem, 2.3vw, 2.1rem); font-style: italic; }
+  html.js .panel.is-open .panel-body { opacity: 1; transition: opacity .45s var(--ease) .25s; }
 }
-.wi-preview img {
-  display: block; width: 100%; height: auto; max-height: 240px; object-fit: cover;
-  border-radius: var(--r-md);
-  box-shadow: 0 0 0 1px var(--hairline), 0 24px 48px -20px var(--shadow-tint);
-  transform: scale(.92) rotate(-2deg);
-  transition: transform .35s var(--ease);
+@media (prefers-reduced-motion: reduce) {
+  .panel, .panel-img, .panel-spine, .panel-body, .panel.is-open .panel-body { transition: none !important; }
 }
-.wi-preview.is-on { opacity: 1; }
-.wi-preview.is-on img { transform: none; }
-.wi-preview.is-left img { object-position: left center; }
-.wi-preview.is-whole img { object-fit: contain; background: var(--bg-card); padding: .5rem; }
-body.a11y-motion .wi-preview img { transition: none; transform: none; }
-@media (prefers-reduced-motion: reduce) { .wi-preview img { transition: none; transform: none; } }
-@media (max-width: 760px), (hover: none) { .wi-preview { display: none; } }
+body.a11y-motion .panel, body.a11y-motion .panel-img, body.a11y-motion .panel-spine, body.a11y-motion .panel-body { transition: none !important; }
 
 .visually-hidden {
   position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px;

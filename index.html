@@ -36,7 +36,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Archivo:ital,wdth,wght@0,62..125,400..700;1,62..125,400..700&family=Fraunces:ital,opsz,wght@0,9..144,400..700;1,9..144,400..700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="assets/styles.css?v=20261012c">
+<link rel="stylesheet" href="assets/styles.css?v=20261012e">
 
 <!-- Marks that scripting is available. The scroll-in animation is scoped to
      html.js so that a failed script leaves the content visible, not blank.
@@ -119,9 +119,16 @@
       <div class="hero-grid">
         <div>
           <div class="hero-body">
-            <p class="hero-hook">I <em>write</em> things, <em>make</em> things, and (occasionally) <em>overthink</em><sup class="hero-fn-mark" aria-hidden="true">*</sup> why people do the things they do.</p>
+            <p class="hero-hook">I <em>write</em> things, <em>make</em> things, and (occasionally) <em>overthink</em> why people do the things they do.</p>
             <p>I studied psychology and journalism, so naturally I’m obsessed with both what people say and why they say it.</p>
-            <p class="hero-fn"><span aria-hidden="true">* </span>Professionally, this is called research.</p>
+            <!-- Pause on the hero and a pen circles "overthink" and leaves a
+                 note beside it. app.js places it and sets it off; without
+                 JavaScript it never appears. -->
+            <span class="ponder" aria-hidden="true">
+              <svg class="ponder-loop" viewBox="0 0 200 64" preserveAspectRatio="none"><path pathLength="1" d="M36 9C82 1 168 2 192 22c14 13-8 30-58 36C78 64 20 60 8 42 0 28 22 14 58 9c28-4 70-4 96 1"/></svg>
+              <svg class="ponder-arrow"><path pathLength="1"/></svg>
+              <span class="ponder-note">still thinking about it</span>
+            </span>
           </div>
           <div class="hero-cta">
             <a class="pill pill--solid" href="#contact">Work with me<span class="cta-go" aria-hidden="true"><svg width="12" height="12" viewBox="0 0 256 256" fill="currentColor" aria-hidden="true"><path d="M224.49,136.49l-72,72a12,12,0,0,1-17-17L187,140H40a12,12,0,0,1,0-24H187L135.51,64.48a12,12,0,0,1,17-17l72,72A12,12,0,0,1,224.49,136.49Z"/></svg></span></a>
@@ -310,58 +317,78 @@
         <p class="section-intro">Shorter pieces and side projects: the things that do not need a whole case study behind them.</p>
       </div>
 
-      <ul class="work-index" data-stagger>
-      <li>
-        <a class="wi-row" href="assets/home-design-5.pdf" target="_blank" rel="noopener" data-preview="assets/other-ui-prototype.jpg">
-          <img class="wi-thumb" src="assets/other-ui-prototype.jpg" loading="lazy" alt="Mobile app screen titled Find a therapist, with a search field and a list of therapists filtered to CBT.">
-          <span class="wi-kicker">Product design</span>
-          <span class="wi-title">Mental health app</span>
-          <span class="wi-line">A UI prototype for finding and booking a therapist: screens, flow and copy, designed end to end in Figma.</span>
-          <span class="wi-go"><span class="visually-hidden">Figma walkthrough, PDF</span><span aria-hidden="true">→</span></span>
+      <!-- Six side by side; the one under the pointer or keyboard opens up
+           (app.js). Phones, touch screens and no-JavaScript get plain cards. -->
+      <ul class="panels" data-stagger>
+      <li class="panel is-open">
+        <a class="panel-in" href="assets/home-design-5.pdf" target="_blank" rel="noopener">
+          <img class="panel-img" src="assets/other-ui-prototype.jpg" loading="lazy" alt="Mobile app screen titled Find a therapist, with a search field and a list of therapists filtered to CBT.">
+          <span class="panel-spine" aria-hidden="true"><span>Product design</span><b>Mental health app</b></span>
+          <span class="panel-body">
+            <span class="panel-kicker">Product design</span>
+            <span class="panel-title">Mental health app</span>
+            <span class="panel-line">A UI prototype for finding and booking a therapist: screens, flow and copy, designed end to end in Figma.</span>
+            <span class="panel-go">Figma walkthrough, PDF <span aria-hidden="true">→</span></span>
+          </span>
         </a>
       </li>
-      <li>
-        <a class="wi-row" href="https://saranyaa1310.substack.com/" target="_blank" rel="noopener" data-preview="assets/home-writing-marketing-5.jpg">
-          <img class="wi-thumb" src="assets/home-writing-marketing-5.jpg" loading="lazy" alt="Anya’s Newsletter homepage on Substack, showing recent essays and a most-popular list.">
-          <span class="wi-kicker">Newsletter</span>
-          <span class="wi-title">Anya’s Newsletter</span>
-          <span class="wi-line">Personal essays on growth, therapy, films and the small things, written and published on my own schedule.</span>
-          <span class="wi-go"><span class="visually-hidden">Read on Substack</span><span aria-hidden="true">→</span></span>
+      <li class="panel">
+        <a class="panel-in" href="https://saranyaa1310.substack.com/" target="_blank" rel="noopener">
+          <img class="panel-img" src="assets/home-writing-marketing-5.jpg" loading="lazy" alt="Anya’s Newsletter homepage on Substack, showing recent essays and a most-popular list.">
+          <span class="panel-spine" aria-hidden="true"><span>Newsletter</span><b>Anya’s Newsletter</b></span>
+          <span class="panel-body">
+            <span class="panel-kicker">Newsletter</span>
+            <span class="panel-title">Anya’s Newsletter</span>
+            <span class="panel-line">Personal essays on growth, therapy, films and the small things, written and published on my own schedule.</span>
+            <span class="panel-go">Read on Substack <span aria-hidden="true">→</span></span>
+          </span>
         </a>
       </li>
-      <li>
-        <a class="wi-row" href="https://twitter.com/holasaranyahere" target="_blank" rel="noopener" data-preview="assets/home-content-2.png">
-          <img class="wi-thumb wi-thumb--left" src="assets/home-content-2.png" loading="lazy" alt="A post on X from @holasaranyahere about sending postcards, showing 64.7K views.">
-          <span class="wi-kicker">Writing in public</span>
-          <span class="wi-title">Short-form on X</span>
-          <span class="wi-line">Three thousand people follow along while I think out loud. My top post reached 190K; this one on postcards, 64.7K.</span>
-          <span class="wi-go"><span class="visually-hidden">@holasaranyahere</span><span aria-hidden="true">→</span></span>
+      <li class="panel">
+        <a class="panel-in" href="https://twitter.com/holasaranyahere" target="_blank" rel="noopener">
+          <img class="panel-img panel-img--left" src="assets/home-content-2.png" loading="lazy" alt="A post on X from @holasaranyahere about sending postcards, showing 64.7K views.">
+          <span class="panel-spine" aria-hidden="true"><span>Writing in public</span><b>Short-form on X</b></span>
+          <span class="panel-body">
+            <span class="panel-kicker">Writing in public</span>
+            <span class="panel-title">Short-form on X</span>
+            <span class="panel-line">Three thousand people follow along while I think out loud. My top post reached 190K; this one on postcards, 64.7K.</span>
+            <span class="panel-go">@holasaranyahere <span aria-hidden="true">→</span></span>
+          </span>
         </a>
       </li>
-      <li>
-        <div class="wi-row" data-preview="assets/home-mental-health-discord-moderation-1.jpg">
-          <img class="wi-thumb" src="assets/home-mental-health-discord-moderation-1.jpg" loading="lazy" alt="Channel list for a peer support Discord server, with channels for external resources, new users and feedback.">
-          <span class="wi-kicker">Community</span>
-          <span class="wi-title">Peer support server</span>
-          <span class="wi-line">Moderating an online mental health community: channel structure, resource threads, and the quiet rules that keep it safe.</span>
+      <li class="panel">
+        <div class="panel-in" tabindex="0">
+          <img class="panel-img" src="assets/home-mental-health-discord-moderation-1.jpg" loading="lazy" alt="Channel list for a peer support Discord server, with channels for external resources, new users and feedback.">
+          <span class="panel-spine" aria-hidden="true"><span>Community</span><b>Peer support server</b></span>
+          <span class="panel-body">
+            <span class="panel-kicker">Community</span>
+            <span class="panel-title">Peer support server</span>
+            <span class="panel-line">Moderating an online mental health community: channel structure, resource threads, and the quiet rules that keep it safe.</span>
+          </span>
         </div>
       </li>
-      <li>
-        <a class="wi-row" href="https://www.instagram.com/anyaohnanana" target="_blank" rel="noopener" data-preview="assets/instagram.png">
-          <img class="wi-thumb" src="assets/instagram.png" loading="lazy" alt="Anya’s Instagram profile, described as a person of the internet who occasionally makes videos.">
-          <span class="wi-kicker">Personal brand</span>
-          <span class="wi-title">Me, on Instagram</span>
-          <span class="wi-line">Videos on internet pop culture, women’s health and my observations about the world and people. I like being on camera, and this space is mine.</span>
-          <span class="wi-go"><span class="visually-hidden">@anyaohnanana</span><span aria-hidden="true">→</span></span>
+      <li class="panel">
+        <a class="panel-in" href="https://www.instagram.com/anyaohnanana" target="_blank" rel="noopener">
+          <img class="panel-img" src="assets/instagram.png" loading="lazy" alt="Anya’s Instagram profile, described as a person of the internet who occasionally makes videos.">
+          <span class="panel-spine" aria-hidden="true"><span>Personal brand</span><b>Me, on Instagram</b></span>
+          <span class="panel-body">
+            <span class="panel-kicker">Personal brand</span>
+            <span class="panel-title">Me, on Instagram</span>
+            <span class="panel-line">Videos on internet pop culture, women’s health and my observations about the world and people. I like being on camera, and this space is mine.</span>
+            <span class="panel-go">@anyaohnanana <span aria-hidden="true">→</span></span>
+          </span>
         </a>
       </li>
-      <li>
-        <a class="wi-row" href="assets/ghostwriting.png" target="_blank" rel="noopener" data-preview="assets/ghostwriting.png">
-          <img class="wi-thumb wi-thumb--whole" src="assets/ghostwriting.png" loading="lazy" alt="LinkedIn post written in a founder’s voice about moving from fintech to mental health, with the founder’s details removed.">
-          <span class="wi-kicker">Ghostwriting &amp; engagement</span>
-          <span class="wi-title">Founder voice on LinkedIn</span>
-          <span class="wi-line">Founder thought leadership written from our conversations, so posts sound like them, not the brand. Plus LinkedIn engagement work.</span>
-          <span class="wi-go"><span class="visually-hidden">See a sample</span><span aria-hidden="true">→</span></span>
+      <li class="panel">
+        <a class="panel-in" href="assets/ghostwriting.png" target="_blank" rel="noopener">
+          <img class="panel-img panel-img--top" src="assets/ghostwriting.png" loading="lazy" alt="LinkedIn post written in a founder’s voice about moving from fintech to mental health, with the founder’s details removed.">
+          <span class="panel-spine" aria-hidden="true"><span>Ghostwriting &amp; engagement</span><b>Founder voice on LinkedIn</b></span>
+          <span class="panel-body">
+            <span class="panel-kicker">Ghostwriting &amp; engagement</span>
+            <span class="panel-title">Founder voice on LinkedIn</span>
+            <span class="panel-line">Founder thought leadership written from our conversations, so posts sound like them, not the brand. Plus LinkedIn engagement work.</span>
+            <span class="panel-go">See a sample <span aria-hidden="true">→</span></span>
+          </span>
         </a>
       </li>
       </ul>
@@ -735,7 +762,6 @@
   <button class="a11y-reset" id="a11yReset" type="button">Reset all</button>
 </div>
 
-<div class="wi-preview" aria-hidden="true"><img alt=""></div>
-<script src="assets/app.js?v=20261012c"></script>
+<script src="assets/app.js?v=20261012e"></script>
 </body>
 </html>
