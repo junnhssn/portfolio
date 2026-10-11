@@ -294,6 +294,28 @@ html[data-theme="dark"] .icon-sun, html[data-theme="light"] .icon-moon { display
 }
 .hero-hook em { font-style: italic; color: var(--accent); font-variation-settings: 'SOFT' 60, 'WONK' 1; }
 
+/* The pen note on "overthink". app.js positions every part in pixels
+   relative to .hero-body and adds .is-on after a pause on the hero. Where
+   there is no room beside the line (phones) only the circle is drawn. */
+.hero-body { position: relative; }
+.ponder { position: absolute; inset: 0; pointer-events: none; z-index: 1; }
+.ponder svg { position: absolute; overflow: visible; fill: none; stroke: var(--accent); stroke-linecap: round; stroke-linejoin: round; }
+.ponder path { vector-effect: non-scaling-stroke; stroke-dasharray: 1; stroke-dashoffset: 1; }
+.ponder-loop { stroke-width: 2; }
+.ponder-arrow { inset: 0; width: 100%; height: 100%; stroke-width: 1.6; }
+.ponder-note {
+  position: absolute; white-space: nowrap;
+  font-family: var(--font-display); font-style: italic; font-weight: 400;
+  font-size: clamp(.95rem, 1.35vw, 1.12rem); line-height: 1.2;
+  font-variation-settings: 'SOFT' 100, 'WONK' 1;
+  color: var(--accent);
+  opacity: 0; transform: rotate(-4deg) translateY(4px);
+}
+.ponder.is-on .ponder-loop path { stroke-dashoffset: 0; transition: stroke-dashoffset .85s var(--ease-out); }
+.ponder.is-on .ponder-arrow path { stroke-dashoffset: 0; transition: stroke-dashoffset .5s var(--ease-out) .7s; }
+.ponder.is-on .ponder-note { opacity: 1; transform: rotate(-4deg); transition: opacity .35s var(--ease-out) 1s, transform .45s var(--ease-out) 1s; }
+.ponder.no-room .ponder-arrow, .ponder.no-room .ponder-note { display: none; }
+
 /* Arched portrait on a blush ground, framed like the editorial references. */
 .portrait-frame { position: relative; justify-self: end; width: min(100%, 330px); }
 @media (max-width: 860px) { .portrait-frame { justify-self: start; width: min(100%, 270px); } }
@@ -493,51 +515,92 @@ body.a11y-motion .cursor-glow { display: none !important; }
   font-size: clamp(2.1rem, 5.5vw, 3.4rem); line-height: 1;
   letter-spacing: -.03em;
 }
-.stat span { display: block; margin-top: .4rem; font-size: .84rem; color: var(--text-muted); }
+.stat > span { display: block; margin-top: .4rem; font-size: .84rem; color: var(--text-muted); }
 
-/* ── Selected work: one feature, three secondary ──────────────────────── */
-.feature {
-  display: grid;
-  grid-template-columns: 1.15fr .85fr;
+/* ── Selected work: the stack ───────────────────────────────────────────
+   Every card sticks just under the nav, each a step lower than the last, and
+   the next one slides up over it. app.js writes --cover (how much of a card
+   the next one hides) and --enter (how far a card is from settling); with
+   motion off neither is written and the cards are a plain list. */
+.stack { list-style: none; margin: 0; padding: 0; display: grid; gap: clamp(1.25rem, 3vw, 2rem); }
+.stack-item { --stick: calc(61px + clamp(.75rem, 2vw, 1.25rem) + var(--i) * 14px); }
+
+.stack-card {
+  position: relative; isolation: isolate; overflow: hidden;
+  display: grid; grid-template-columns: 1.1fr .9fr; align-items: center;
   gap: clamp(1.25rem, 3vw, 2.5rem);
-  align-items: center;
-  text-decoration: none;
-  margin-bottom: clamp(2rem, 5vw, 3.25rem);
-  transition: transform .25s var(--ease);
+  padding: clamp(.9rem, 2vw, 1.4rem);
+  background: var(--bg-card); color: inherit; text-decoration: none;
+  border: 1px solid var(--border); border-radius: var(--r-lg);
+  box-shadow: var(--shadow);
+  transform-origin: 50% 0;
 }
-.feature:hover { color: inherit; }
-.feature:hover .feature-img { transform: scale(1.015); }
-.feature:hover .work-card-more { color: var(--accent); }
-@media (max-width: 800px) { .feature { grid-template-columns: 1fr; } }
+.stack-card:hover { color: inherit; }
+.stack-card:hover .stack-media img { transform: scale(1.015); }
+.stack-card:hover .work-card-more { color: var(--accent); }
+@media (max-width: 800px) { .stack-card { grid-template-columns: 1fr; align-content: start; gap: 1rem; } }
 
-.feature-img { width: 100%; aspect-ratio: 4 / 3; object-fit: cover; object-position: top center; border-radius: var(--r-md); transition: transform .4s var(--ease); }
-.feature-body { display: flex; flex-direction: column; gap: .65rem; justify-content: center; }
-.feature-body h3 { font-family: var(--font-display); font-size: clamp(1.7rem, 3.4vw, 2.5rem); font-weight: 500; letter-spacing: -.02em; line-height: 1.05; }
+/* Dims a card as the next one covers it. A layer rather than a filter, so it
+   stays on the compositor. */
+.stack-card::after {
+  content: ''; position: absolute; inset: 0; z-index: 2;
+  background: var(--bg); opacity: 0;
+  pointer-events: none;
+}
+
+.stack-media { position: relative; z-index: 1; border-radius: var(--r-md); overflow: hidden; }
+.stack-media img {
+  display: block; width: 100%; aspect-ratio: 16 / 11; height: auto; max-height: min(52vh, 440px);
+  object-fit: cover; object-position: top center;
+  transition: transform .4s var(--ease);
+}
+.stack-media--logo { display: grid; place-items: center; background: #000; aspect-ratio: 16 / 11; max-height: min(52vh, 440px); }
+.stack-media--logo img { width: 52%; aspect-ratio: 1; max-height: none; }
+@media (max-width: 800px) {
+  .stack-media img, .stack-media--logo { aspect-ratio: 16 / 10; max-height: 34vh; }
+  .stack-media--logo img { width: auto; height: 80%; max-height: none; }
+}
+
+.stack-body { position: relative; z-index: 1; display: flex; flex-direction: column; gap: .65rem; justify-content: center; }
+.stack-body h3 { font-family: var(--font-display); font-size: clamp(1.6rem, 3.2vw, 2.4rem); font-weight: 500; letter-spacing: -.02em; line-height: 1.05; }
+.stack-body p { color: var(--text-muted); font-size: .96rem; }
+.stack-body .brand-mark { width: 40px; height: 40px; border-radius: 11px; }
+
+/* The brand's own mark, tinted and bleeding off the card edge like the case
+   study headers. It trails the card as it settles, so it reads as further
+   back than the card it sits in. */
+.stack-mark {
+  --size: clamp(220px, 30vw, 420px);
+  position: absolute; z-index: 0; right: calc(var(--size) * -.32); top: 50%;
+  width: var(--size); height: var(--size); margin-top: calc(var(--size) / -2);
+  background: var(--accent); opacity: var(--case-mark-opacity);
+  -webkit-mask: var(--mark) center / contain no-repeat;
+  mask: var(--mark) center / contain no-repeat;
+  pointer-events: none;
+}
+
 .feature-kicker { font-family: var(--font-wide); font-size: .66rem; font-weight: 700; letter-spacing: .15em; text-transform: uppercase; color: var(--accent); }
-.feature-body p { color: var(--text-muted); font-size: .96rem; }
 .feature-metrics { display: flex; gap: 1.5rem; margin-top: .3rem; }
 .feature-metrics div b { font-family: var(--font-display); font-size: 1.5rem; display: block; line-height: 1; }
 .feature-metrics div span { font-size: .76rem; color: var(--text-dim); }
 
-.work-row { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--gap); }
-@media (max-width: 800px) { .work-row { grid-template-columns: 1fr; } }
-
-.work-card { display: flex; flex-direction: column; gap: .85rem; text-decoration: none; transition: transform .25s var(--ease); }
-.work-card:hover { color: inherit; }
-.work-card:hover .work-card-img, .work-card:hover .work-card-blank { transform: scale(1.015); }
-.work-card:hover .work-card-more { color: var(--accent); }
-
-.work-card-img { aspect-ratio: 16 / 11; width: 100%; object-fit: cover; object-position: top center; border-radius: var(--r-md); transition: transform .4s var(--ease); }
-.work-card-blank {
-  aspect-ratio: 16 / 11;
-  display: grid; place-items: center;
-  background: var(--bg-soft);
-  border-radius: var(--r-md);
-  transition: transform .4s var(--ease);
+/* Sticking needs a screen tall enough to hold a whole card under the nav, so
+   short landscape phones and reduced motion keep the plain list. */
+@media (prefers-reduced-motion: no-preference) and (min-height: 640px) {
+  .stack { gap: 0; padding-bottom: clamp(.5rem, 3vh, 2rem); }
+  .stack-item { position: sticky; top: var(--stick); margin-bottom: clamp(3rem, 12vh, 7rem); }
+  .stack-item:last-child { margin-bottom: 0; }
+  /* app.js sets --card-h to the tallest card, so a taller card underneath
+     never shows its bottom edge below a shorter one on top. */
+  .stack-card { min-height: var(--card-h, 0); transform: scale(calc(1 - var(--cover, 0) * .05)); }
+  .stack-card::after { opacity: calc(var(--cover, 0) * .5); }
+  .stack-mark { transform: translate3d(0, calc(var(--enter, 0) * 70px), 0) rotate(calc(var(--enter, 0) * -10deg)); }
 }
-.work-card-blank img { width: 44%; opacity: .75; }
-.work-card-blank--logo { background: #000; }
-.work-card-blank--logo img { width: 58%; opacity: 1; }
+body.a11y-motion .stack { gap: clamp(1.25rem, 3vw, 2rem); padding-bottom: 0; }
+body.a11y-motion .stack-item { position: static; margin-bottom: 0; }
+body.a11y-motion .stack-card { transform: none; }
+body.a11y-motion .stack-card::after { opacity: 0; }
+body.a11y-motion .stack-mark { transform: none; }
 
 /* Client marks sit on their own brand colour, so they keep a light backing in
    both themes rather than taking on the page palette. */
@@ -547,12 +610,8 @@ body.a11y-motion .cursor-glow { display: none !important; }
   border-radius: 9px; background: #fff; object-fit: cover;
   box-shadow: 0 0 0 1px var(--border);
 }
-.feature-body .brand-mark { width: 40px; height: 40px; border-radius: 11px; }
 .brand-mark--case { display: block; width: 44px; height: 44px; border-radius: 12px; margin-bottom: 1rem; }
 
-.work-card-body { display: grid; gap: .3rem; }
-.work-card-body h3 { font-family: var(--font-display); font-size: 1.3rem; font-weight: 500; letter-spacing: -.01em; }
-.work-card-tags { font-size: .78rem; color: var(--text-dim); }
 .work-card-more { font-family: var(--font-wide); font-size: .66rem; font-weight: 700; letter-spacing: .13em; text-transform: uppercase; color: var(--accent); margin-top: .4rem; }
 
 .badge-soon {
@@ -980,7 +1039,8 @@ body.a11y-motion .hero-name .n2 { opacity: 1 !important; animation: none !import
 
 /* ── Print ────────────────────────────────────────────────────────────── */
 @media print {
-  .nav, .a11y-fab, .a11y-panel, .lightbox, .compose, .case-back, .marquee, .decor { display: none !important; }
+  .nav, .a11y-fab, .a11y-panel, .lightbox, .compose, .case-back, .marquee, .decor, .ponder, .stack-mark { display: none !important; }
+  .stack-item { position: static !important; }
   body { background: #fff; color: #000; }
   body::after { display: none; }
   .ink { background: #fff !important; color: #000 !important; }
@@ -1145,7 +1205,7 @@ body.a11y-motion .wi-preview img { transition: none; transform: none; }
 /* ── Audit fixes ──────────────────────────────────────────────────────────
    Pressed feedback was missing everywhere: things lifted on hover but gave
    nothing back on click. */
-.pill:active, .btn:active, .work-card:active, .link-card:active { transform: translateY(1px); }
+.pill:active, .btn:active, .link-card:active { transform: translateY(1px); }
 
 /* The nav gave no clue which section you were looking at. */
 .nav-links a[aria-current="true"] { color: var(--accent); }
@@ -1163,7 +1223,7 @@ body.a11y-motion .wi-preview img { transition: none; transform: none; }
 
 /* Stops a single word dangling on its own final line. */
 p, .tile p, .section-intro { text-wrap: pretty; }
-.feature-body h3, .work-card-body h3, .creator-point h3, .brief-point h3 { text-wrap: balance; }
+.stack-body h3, .creator-point h3, .brief-point h3 { text-wrap: balance; }
 
 /* Inline validation message for the composer. */
 .field-error { margin-top: .4rem; font-size: .82rem; color: var(--accent); }

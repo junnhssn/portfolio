@@ -121,6 +121,14 @@
           <div class="hero-body">
             <p class="hero-hook">I <em>write</em> things, <em>make</em> things, and (occasionally) <em>overthink</em> why people do the things they do.</p>
             <p>I studied psychology and journalism, so naturally I’m obsessed with both what people say and why they say it.</p>
+            <!-- Pause on the hero and a pen circles "overthink" and leaves a
+                 note beside it. app.js places it and sets it off; without
+                 JavaScript it never appears. -->
+            <span class="ponder" aria-hidden="true">
+              <svg class="ponder-loop" viewBox="0 0 200 64" preserveAspectRatio="none"><path pathLength="1" d="M36 9C82 1 168 2 192 22c14 13-8 30-58 36C78 64 20 60 8 42 0 28 22 14 58 9c28-4 70-4 96 1"/></svg>
+              <svg class="ponder-arrow"><path pathLength="1"/></svg>
+              <span class="ponder-note">still thinking about it</span>
+            </span>
           </div>
           <div class="hero-cta">
             <a class="pill pill--solid" href="#contact">Work with me<span class="cta-go" aria-hidden="true"><svg width="12" height="12" viewBox="0 0 256 256" fill="currentColor" aria-hidden="true"><path d="M224.49,136.49l-72,72a12,12,0,0,1-17-17L187,140H40a12,12,0,0,1,0-24H187L135.51,64.48a12,12,0,0,1,17-17l72,72A12,12,0,0,1,224.49,136.49Z"/></svg></span></a>
@@ -200,51 +208,77 @@
         <p class="section-intro">Four places where I’ve shaped how something sounded, looked, and landed.</p>
       </div>
 
-      <a class="feature" href="#/morphic">
-        <img class="feature-img" src="assets/morphic-product-marketing-launch-3.jpg" loading="lazy"
-             alt="Morphic launch email introducing Workflows, with a product preview and a call to action." width="940" height="1306">
-        <div class="feature-body">
-          <p class="feature-kicker">Brand · Social · Content · Product Marketing · Influencer Marketing</p>
-          <h3 class="brand-title"><img class="brand-mark" src="assets/logo-morphic.svg" alt="" width="40" height="40">Morphic</h3>
-          <p>Communication and narrative-building for a generative AI video startup — product marketing, launch narrative, and creator partnerships.</p>
-          <div class="feature-metrics">
-            <div><b>300+</b><span>creators researched</span></div>
-            <div><b>50+</b><span>collaborations closed</span></div>
-          </div>
-          <p class="work-card-more">Read the case study →</p>
-        </div>
-      </a>
+      <!-- Each card sticks under the nav and the next one slides over it, so
+           the four case studies stack into a deck as you scroll. Add another by
+           copying a whole <li> and giving it the next --i. -->
+      <ol class="stack" aria-label="Case studies">
+        <li class="stack-item" style="--i: 0">
+          <a class="stack-card" href="#/morphic">
+            <span class="stack-mark case-mark--morphic" aria-hidden="true"></span>
+            <div class="stack-media">
+              <img src="assets/morphic-product-marketing-launch-3.jpg" loading="lazy"
+                   alt="Morphic launch email introducing Workflows, with a product preview and a call to action." width="940" height="1306">
+            </div>
+            <div class="stack-body">
+              <p class="feature-kicker">Brand · Social · Content · Product Marketing · Influencer Marketing</p>
+              <h3 class="brand-title"><img class="brand-mark" src="assets/logo-morphic.svg" alt="" width="40" height="40">Morphic</h3>
+              <p>Communication and narrative-building for a generative AI video startup: product marketing, launch narrative, and creator partnerships.</p>
+              <div class="feature-metrics">
+                <div><b>300+</b><span>creators researched</span></div>
+                <div><b>50+</b><span>collaborations closed</span></div>
+              </div>
+              <p class="work-card-more">Read the case study →</p>
+            </div>
+          </a>
+        </li>
 
-      <div class="work-row" data-stagger>
-        <a class="work-card" href="#/headout">
-          <img class="work-card-img" src="assets/home-writing-marketing-1.jpg" loading="lazy"
-               alt="Headout landing page for Grévin Wax Museum tickets in Paris." width="1327" height="871">
-          <div class="work-card-body">
-            <h3 class="brand-title"><img class="brand-mark" src="assets/logo-headout.svg" alt="" width="32" height="32">Headout</h3>
-            <p class="work-card-tags">SEO · Content · Product Marketing</p>
-            <p class="work-card-more">Read →</p>
-          </div>
-        </a>
+        <li class="stack-item" style="--i: 1">
+          <a class="stack-card" href="#/headout">
+            <span class="stack-mark case-mark--headout" aria-hidden="true"></span>
+            <div class="stack-media">
+              <img src="assets/home-writing-marketing-1.jpg" loading="lazy"
+                   alt="Headout landing page for Grévin Wax Museum tickets in Paris." width="1327" height="871">
+            </div>
+            <div class="stack-body">
+              <p class="feature-kicker">SEO · Content · Product Marketing</p>
+              <h3 class="brand-title"><img class="brand-mark" src="assets/logo-headout.svg" alt="" width="40" height="40">Headout</h3>
+              <p>SEO and landing page copy for a global experiences marketplace.</p>
+              <p class="work-card-more">Read the case study →</p>
+            </div>
+          </a>
+        </li>
 
-        <a class="work-card" href="#/yaas-media">
-          <div class="work-card-blank work-card-blank--logo"><img src="assets/logo-yaas.png" alt="" width="500" height="500"></div>
-          <div class="work-card-body">
-            <h3 class="brand-title"><img class="brand-mark" src="assets/logo-yaas.png" alt="" width="32" height="32">YAAS Media</h3>
-            <p class="work-card-tags">Social · Video · Creative · Storytelling</p>
-            <p class="work-card-more">Read →</p>
-          </div>
-        </a>
+        <li class="stack-item" style="--i: 2">
+          <a class="stack-card" href="#/yaas-media">
+            <span class="stack-mark case-mark--yaas" aria-hidden="true"></span>
+            <div class="stack-media stack-media--logo">
+              <img src="assets/logo-yaas.png" alt="" width="500" height="500">
+            </div>
+            <div class="stack-body">
+              <p class="feature-kicker">Social · Video · Creative · Storytelling</p>
+              <h3 class="brand-title"><img class="brand-mark" src="assets/logo-yaas.png" alt="" width="40" height="40">YAAS Media</h3>
+              <p>Social and video storytelling for a media brand.</p>
+              <p class="work-card-more">Read the case study →</p>
+            </div>
+          </a>
+        </li>
 
-        <a class="work-card" href="#/decoding-draupadi">
-          <img class="work-card-img" src="assets/home-design-1.png" loading="lazy"
-               alt="Decoding Draupadi social post in red on cream reading ‘This July’ with four self-care prompts." width="1080" height="1080">
-          <div class="work-card-body">
-            <h3 class="brand-title"><img class="brand-mark" src="assets/logo-decoding-draupadi.png" alt="" width="32" height="32">Decoding Draupadi</h3>
-            <p class="work-card-tags">Social · Community · Content · Events</p>
-            <p class="work-card-more">Read →</p>
-          </div>
-        </a>
-      </div>
+        <li class="stack-item" style="--i: 3">
+          <a class="stack-card" href="#/decoding-draupadi">
+            <span class="stack-mark case-mark--decoding-draupadi" aria-hidden="true"></span>
+            <div class="stack-media">
+              <img src="assets/home-design-1.png" loading="lazy"
+                   alt="Decoding Draupadi social post in red on cream reading ‘This July’ with four self-care prompts." width="1080" height="1080">
+            </div>
+            <div class="stack-body">
+              <p class="feature-kicker">Social · Community · Content · Events</p>
+              <h3 class="brand-title"><img class="brand-mark" src="assets/logo-decoding-draupadi.png" alt="" width="40" height="40">Decoding Draupadi</h3>
+              <p>Social, community, and events for a platform on women’s health and money.</p>
+              <p class="work-card-more">Read the case study →</p>
+            </div>
+          </a>
+        </li>
+      </ol>
 
     </div>
   </section>
@@ -274,7 +308,7 @@
     <div class="wrap">
       <div class="section-head">
         <h2 class="dsplit"><span class="dsplit-a">Other</span><span class="dsplit-b">Work</span></h2>
-        <p class="section-intro">Shorter pieces and side projects — the things that do not need a whole case study behind them.</p>
+        <p class="section-intro">Shorter pieces and side projects: the things that do not need a whole case study behind them.</p>
       </div>
 
       <ul class="work-index" data-stagger>
@@ -283,7 +317,7 @@
           <img class="wi-thumb" src="assets/other-ui-prototype.jpg" loading="lazy" alt="Mobile app screen titled Find a therapist, with a search field and a list of therapists filtered to CBT.">
           <span class="wi-kicker">Product design</span>
           <span class="wi-title">Mental health app</span>
-          <span class="wi-line">A UI prototype for finding and booking a therapist — screens, flow and copy, designed end to end in Figma.</span>
+          <span class="wi-line">A UI prototype for finding and booking a therapist: screens, flow and copy, designed end to end in Figma.</span>
           <span class="wi-go"><span class="visually-hidden">Figma walkthrough, PDF</span><span aria-hidden="true">→</span></span>
         </a>
       </li>
@@ -292,7 +326,7 @@
           <img class="wi-thumb" src="assets/home-writing-marketing-5.jpg" loading="lazy" alt="Anya’s Newsletter homepage on Substack, showing recent essays and a most-popular list.">
           <span class="wi-kicker">Newsletter</span>
           <span class="wi-title">Anya’s Newsletter</span>
-          <span class="wi-line">Personal essays on growth, therapy, films and the small things — written and published on my own schedule.</span>
+          <span class="wi-line">Personal essays on growth, therapy, films and the small things, written and published on my own schedule.</span>
           <span class="wi-go"><span class="visually-hidden">Read on Substack</span><span aria-hidden="true">→</span></span>
         </a>
       </li>
@@ -310,7 +344,7 @@
           <img class="wi-thumb" src="assets/home-mental-health-discord-moderation-1.jpg" loading="lazy" alt="Channel list for a peer support Discord server, with channels for external resources, new users and feedback.">
           <span class="wi-kicker">Community</span>
           <span class="wi-title">Peer support server</span>
-          <span class="wi-line">Moderating an online mental health community &mdash; channel structure, resource threads, and the quiet rules that keep it safe.</span>
+          <span class="wi-line">Moderating an online mental health community: channel structure, resource threads, and the quiet rules that keep it safe.</span>
         </div>
       </li>
       <li>
@@ -360,7 +394,7 @@
 
         <a class="tile" href="https://letterboxd.com/anya_2104/" target="_blank" rel="noopener">
           <p class="tile-kicker">Film</p>
-          <h3>Letterboxd — anya_2104</h3>
+          <h3>Letterboxd: anya_2104</h3>
           <p>I love films and watch a lot of them, sometimes write about them, and log everything here.</p>
           <span class="tile-go">Everything I watch →</span>
         </a>
@@ -421,7 +455,7 @@
             <p class="field-error" id="cNoteError" role="alert" hidden>Add a line about what you are working on, so the email does not arrive empty.</p>
           </div>
           <button class="btn" type="submit">Compose email<span class="cta-go" aria-hidden="true"><svg width="12" height="12" viewBox="0 0 256 256" fill="currentColor" aria-hidden="true"><path d="M224.49,136.49l-72,72a12,12,0,0,1-17-17L187,140H40a12,12,0,0,1,0-24H187L135.51,64.48a12,12,0,0,1,17-17l72,72A12,12,0,0,1,224.49,136.49Z"/></svg></span></button>
-          <p class="compose-hint">This opens your own email app with the message ready to send — nothing is submitted to a server.</p>
+          <p class="compose-hint">This opens your own email app with the message ready to send. Nothing is submitted to a server.</p>
         </form>
       </div>
     </div>
@@ -458,7 +492,7 @@
 
     <section class="case-section">
       <h2>Product marketing &amp; launch</h2>
-      <p>The Workflows launch ran across the founder’s personal account, the brand’s social channels, LinkedIn, and email — one narrative, retuned for each place it landed.</p>
+      <p>The Workflows launch ran across the founder’s personal account, the brand’s social channels, LinkedIn, and email: one narrative, retuned for each place it landed.</p>
       <div class="shots shots--tight shots--slides">
         <figure>
           <img class="shot shot--fit-tall" src="assets/morphic-product-marketing-launch-1.png" loading="lazy"
@@ -468,7 +502,7 @@
         <figure>
           <img class="shot shot--fit-tall" src="assets/morphic-product-marketing-launch-2.png" loading="lazy"
                alt="Instagram post from @morphicstudios introducing Workflows with the same storyboarding and UGC framing." width="960" height="808">
-          <figcaption>Brand channel — Instagram</figcaption>
+          <figcaption>Brand Instagram channel</figcaption>
         </figure>
         <figure>
           <img class="shot shot--fit-tall" src="assets/morphic-product-marketing-launch-3.jpg" loading="lazy"
@@ -679,7 +713,7 @@
 
 <footer class="footer ink">
   <div class="wrap footer-inner">
-    <span>Saranyaa Ramesh — Writer &amp; Creative Strategist</span>
+    <span>Saranyaa Ramesh · Writer &amp; Creative Strategist</span>
     <span>© <span id="year">2026</span> · <a href="mailto:saranyaar2104@gmail.com">saranyaar2104@gmail.com</a></span>
   </div>
 </footer>

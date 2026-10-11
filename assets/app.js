@@ -136,42 +136,137 @@
     document.addEventListener('click', function () { setPanel(false); });
   }
 
-  /* ── Motion: parallax shapes and magnetic cards ────────────────────── */
+  /* ── Motion: parallax shapes, the work stack, the counting numbers ──── */
   var parallaxEls = Array.prototype.slice.call(document.querySelectorAll('.parallax'));
-  var magneticEls = Array.prototype.slice.call(document.querySelectorAll('.feature'));
+  var stackItems = Array.prototype.slice.call(document.querySelectorAll('.stack-item'));
   var parallaxQueued = false;
+
+  function clamp01(n) { return n < 0 ? 0 : n > 1 ? 1 : n; }
+
+  // Each card reports how far it still has to travel before it sticks
+  // (--enter, which the brand mark lags behind) and how much of it the next
+  // card has covered (--cover, which shrinks and dims it). All rects are read
+  // before any style is written so the browser lays out once per frame.
+  function updateStack() {
+    if (!stackItems.length) return;
+    if (getComputedStyle(stackItems[0]).position !== 'sticky') { clearStack(); return; }
+    var vh = window.innerHeight;
+    var rects = stackItems.map(function (item) { return item.getBoundingClientRect(); });
+    var sticks = stackItems.map(function (item) { return parseFloat(getComputedStyle(item).top) || 0; });
+    stackItems.forEach(function (item, i) {
+      var card = item.firstElementChild;
+      var enter = clamp01((rects[i].top - sticks[i]) / Math.max(vh - sticks[i], 1));
+      var cover = i < stackItems.length - 1
+        ? clamp01(1 - (rects[i + 1].top - sticks[i]) / rects[i].height)
+        : 0;
+      card.style.setProperty('--enter', enter.toFixed(3));
+      card.style.setProperty('--cover', cover.toFixed(3));
+    });
+  }
+
+  function clearStack() {
+    stackItems.forEach(function (item) {
+      item.firstElementChild.style.removeProperty('--enter');
+      item.firstElementChild.style.removeProperty('--cover');
+    });
+  }
+
+  // Cards with more copy run taller, and a taller card underneath would
+  // show its bottom edge below the one stacked on top of it.
+  var stackList = document.querySelector('.stack');
+  function syncStackHeights() {
+    if (!stackList) return;
+    stackList.style.removeProperty('--card-h');
+    var tallest = 0;
+    stackItems.forEach(function (item) { tallest = Math.max(tallest, item.firstElementChild.offsetHeight); });
+    if (tallest) stackList.style.setProperty('--card-h', tallest + 'px');
+  }
+  if (stackList) {
+    syncStackHeights();
+    window.addEventListener('load', syncStackHeights);
+    if (document.fonts && document.fonts.ready) document.fonts.ready.then(syncStackHeights);
+  }
+
+  // The numbers run up from zero as the band rises into view, keyed to scroll
+  // position rather than a timer, and never run back down. The real figure
+  // stays in the markup for screen readers and is what shows with motion off.
+  var countBand = document.querySelector('.stats');
+  var counters = [];
+  var countDone = false;
+
+  function formatCount(c, value) {
+    if (c.unit === 'M') return (value >= 1e6 ? Math.round(value / 1e6) + 'M' : Math.round(value / 1e3) + 'K') + c.plus;
+    if (c.unit === 'K') return Math.round(value / 1e3) + 'K' + c.plus;
+    return (c.comma ? Math.round(value).toLocaleString('en-US') : String(Math.round(value))) + c.plus;
+  }
+
+  function setupCounters() {
+    if (!countBand || motionOff()) return;
+    countBand.querySelectorAll('.stat b').forEach(function (b) {
+      var text = b.textContent.trim();
+      var m = /^([\d,]+)([KM]?)(\+?)$/.exec(text);
+      if (!m) return;
+      var unit = m[2];
+      var target = parseInt(m[1].replace(/,/g, ''), 10) * (unit === 'M' ? 1e6 : unit === 'K' ? 1e3 : 1);
+      b.innerHTML = '';
+      var shown = document.createElement('span');
+      shown.setAttribute('aria-hidden', 'true');
+      var real = document.createElement('span');
+      real.className = 'visually-hidden';
+      real.textContent = text;
+      b.appendChild(shown);
+      b.appendChild(real);
+      counters.push({ el: shown, text: text, target: target, unit: unit, plus: m[3], comma: m[1].indexOf(',') > -1, reached: 0 });
+    });
+  }
+
+  function finishCounts() {
+    countDone = true;
+    counters.forEach(function (c) { c.el.textContent = c.text; });
+  }
+
+  function updateCounts() {
+    if (countDone || !counters.length) return;
+    if (motionOff()) { finishCounts(); return; }
+    var top = countBand.getBoundingClientRect().top;
+    var p = clamp01((window.innerHeight - top) / (window.innerHeight * 0.5));
+    var eased = 1 - Math.pow(1 - p, 3);
+    counters.forEach(function (c) {
+      c.reached = Math.max(c.reached, eased);
+      c.el.textContent = c.reached >= 1 ? c.text : formatCount(c, c.target * c.reached);
+    });
+    if (p >= 1) finishCounts();
+  }
 
   function updateParallax() {
     parallaxQueued = false;
+    updateCounts();
     if (motionOff()) return;
     var y = window.pageYOffset;
     parallaxEls.forEach(function (el) {
       var speed = parseFloat(el.getAttribute('data-speed')) || 0.1;
       el.style.transform = 'translate3d(0,' + (y * speed).toFixed(1) + 'px,0)';
     });
+    updateStack();
   }
 
   function clearMotion() {
-    parallaxEls.concat(magneticEls).forEach(function (el) { el.style.transform = ''; });
+    parallaxEls.forEach(function (el) { el.style.transform = ''; });
+    clearStack();
+    if (counters.length) finishCounts();
   }
+
+  setupCounters();
 
   window.addEventListener('scroll', function () {
     if (parallaxQueued) return;
     parallaxQueued = true;
     requestAnimationFrame(updateParallax);
   }, { passive: true });
-
-  // Cards lean very slightly toward the cursor. Pointer events cover mouse and
-  // pen but not touch, so phones are unaffected.
-  magneticEls.forEach(function (card) {
-    card.addEventListener('pointermove', function (event) {
-      if (motionOff() || event.pointerType === 'touch') return;
-      var r = card.getBoundingClientRect();
-      var dx = (event.clientX - r.left) / r.width - 0.5;
-      var dy = (event.clientY - r.top) / r.height - 0.5;
-      card.style.transform = 'translate(' + (dx * 7).toFixed(2) + 'px,' + (dy * 7 - 3).toFixed(2) + 'px)';
-    });
-    card.addEventListener('pointerleave', function () { card.style.transform = ''; });
+  window.addEventListener('resize', function () {
+    if (parallaxQueued) return;
+    parallaxQueued = true;
+    requestAnimationFrame(function () { syncStackHeights(); updateParallax(); });
   });
 
   /* ── Cursor glow ───────────────────────────────────────────────────── */
@@ -453,6 +548,100 @@
 
   // Images settling can change what is on screen, so sweep again once loaded.
   window.addEventListener('load', observeReveals);
+
+  /* ── Pause on the hero ─────────────────────────────────────────────── */
+  // Hold still on the opening line for a couple of seconds and a pen circles
+  // "overthink" and leaves a note beside it. Once per visit. Pointer movement
+  // does not reset the wait, because people move the mouse while they read.
+  var ponder = document.querySelector('.ponder');
+  var ponderWord = ponder && [].filter.call(
+    document.querySelectorAll('.hero-hook em'),
+    function (em) { return em.textContent.trim() === 'overthink'; }
+  )[0];
+
+  if (ponder && ponderWord) {
+    var ponderTimer = null;
+    var ponderShown = false;
+    var loop = ponder.querySelector('.ponder-loop');
+    var arrowPath = ponder.querySelector('.ponder-arrow path');
+    var note = ponder.querySelector('.ponder-note');
+    var hook = ponderWord.closest('.hero-hook');
+    var portrait = document.querySelector('.portrait-frame');
+
+    var placePonder = function () {
+      var box = ponder.getBoundingClientRect();
+      var w = ponderWord.getBoundingClientRect();
+      // An ellipse only clears a word's corners when it is drawn well outside
+      // the word's box, and italic letters overhang that box on both sides.
+      var lw = w.width + 26, lh = w.height + 16;
+      var lx = w.left - box.left - 13, ly = w.top - box.top - 8;
+      loop.style.cssText = 'left:' + lx + 'px;top:' + ly + 'px;width:' + lw + 'px;height:' + lh + 'px';
+
+      // The note goes after the end of the word's line, so find where that
+      // line actually stops.
+      var range = document.createRange();
+      range.selectNodeContents(hook);
+      var lineEnd = w.right;
+      [].forEach.call(range.getClientRects(), function (r) {
+        var mid = r.top + r.height / 2;
+        if (mid > w.top && mid < w.bottom) lineEnd = Math.max(lineEnd, r.right);
+      });
+
+      var limit = window.innerWidth - 16;
+      if (portrait) {
+        var p = portrait.getBoundingClientRect();
+        if (p.left > w.right && p.top < w.bottom && p.bottom > w.top) limit = p.left - 24;
+      }
+      var nw = note.offsetWidth, nh = note.offsetHeight;
+      var nx = lineEnd + 40;
+      var room = nx + nw <= limit;
+      ponder.classList.toggle('no-room', !room);
+      if (!room) return;
+
+      var ny = w.top - box.top + (w.height - nh) / 2 - 6;
+      note.style.left = (nx - box.left) + 'px';
+      note.style.top = ny + 'px';
+
+      // An arc from the note, up over the rest of the line, into the circle.
+      var x1 = nx - box.left - 6, y1 = ny + nh * 0.45;
+      var x2 = lx + lw - 6, y2 = ly + lh * 0.18;
+      var cx = (x1 + x2) / 2, cy = Math.min(y1, y2) - 12;
+      var dx = x2 - cx, dy = y2 - cy, len = Math.sqrt(dx * dx + dy * dy) || 1;
+      var ux = dx / len, uy = dy / len, head = 8;
+      var hx1 = x2 - head * (ux * 0.88 - uy * 0.47), hy1 = y2 - head * (uy * 0.88 + ux * 0.47);
+      var hx2 = x2 - head * (ux * 0.88 + uy * 0.47), hy2 = y2 - head * (uy * 0.88 - ux * 0.47);
+      arrowPath.setAttribute('d',
+        'M' + x1.toFixed(1) + ' ' + y1.toFixed(1) +
+        'Q' + cx.toFixed(1) + ' ' + cy.toFixed(1) + ' ' + x2.toFixed(1) + ' ' + y2.toFixed(1) +
+        'M' + hx1.toFixed(1) + ' ' + hy1.toFixed(1) + 'L' + x2.toFixed(1) + ' ' + y2.toFixed(1) +
+        'L' + hx2.toFixed(1) + ' ' + hy2.toFixed(1));
+    };
+
+    var heroInView = function () {
+      var r = hook.getBoundingClientRect();
+      return currentView === 'home' && r.bottom > 60 && r.top < window.innerHeight;
+    };
+
+    var showPonder = function () {
+      if (!heroInView()) { armPonder(); return; }
+      placePonder();
+      ponder.classList.add('is-on');
+      ponderShown = true;
+    };
+
+    var armPonder = function () {
+      if (ponderShown) return;
+      clearTimeout(ponderTimer);
+      ponderTimer = setTimeout(showPonder, 2400);
+    };
+
+    ['scroll', 'keydown', 'touchmove', 'wheel'].forEach(function (type) {
+      window.addEventListener(type, armPonder, { passive: true });
+    });
+    window.addEventListener('resize', function () { if (ponderShown) placePonder(); });
+    if (document.readyState === 'complete') armPonder();
+    else window.addEventListener('load', armPonder);
+  }
 
   /* ── Email composer ────────────────────────────────────────────────── */
   // GitHub Pages serves static files only, so there is no server to post to.
