@@ -505,9 +505,9 @@ body.a11y-motion .cursor-glow { display: none !important; }
 
 /* ── Stat band ────────────────────────────────────────────────────────── */
 /* By the numbers: a violet ribbon laid across the band, tilted, with a
-   fainter echo crossing behind it. app.js sets --slide (0 to 1) as the band
-   scrolls past; each row holds the five figures three times over so the
-   visible stretch never runs out. */
+   fainter echo crossing behind it, each carrying its own share of the
+   figures. app.js sets --slide (0 to 1) as the band scrolls past; each row
+   repeats its set enough times that the visible stretch never runs out. */
 .ribbon-band { overflow: clip; padding-bottom: clamp(4rem, 9vw, 7rem); }
 .ribbon {
   position: relative; z-index: 1;
@@ -522,31 +522,44 @@ body.a11y-motion .cursor-glow { display: none !important; }
   border-block: 1px solid var(--accent);
   transform: rotate(1.5deg);
 }
-.ribbon-row { display: inline-flex; transform: translate3d(calc(-6% - var(--slide, 0) * 16%), 0, 0); will-change: transform; }
-.ribbon--echo .ribbon-row { transform: translate3d(calc(-24% + var(--slide, 0) * 16%), 0, 0); }
-.ribbon-set { display: inline-flex; align-items: baseline; gap: clamp(1.2rem, 2.4vw, 2.2rem); padding-right: clamp(1.2rem, 2.4vw, 2.2rem); }
-.ribbon-set > span {
-  font-family: var(--font-wide); font-weight: 700;
-  font-size: clamp(.72rem, 1.2vw, 1.05rem); letter-spacing: .12em; text-transform: uppercase;
+/* Each set drifts --travel across the band, starting --lead in from the
+   left, so on wide screens a whole set stays in view the entire time.
+   Percentages are of one set, which is why the sets move rather than the
+   row. Phones cannot fit a set, so there it travels far enough to cycle. */
+.ribbon { --travel: 22vw; --lead: 3vw; }
+.ribbon-row { display: inline-flex; }
+.ribbon-set {
+  display: inline-flex; align-items: baseline; gap: clamp(1rem, 2vw, 1.8rem); padding-right: clamp(1rem, 2vw, 1.8rem);
+  transform: translate3d(calc(-200% + 10vw + var(--lead) + var(--travel) - var(--slide, 0) * var(--travel)), 0, 0);
+  will-change: transform;
 }
+.ribbon--echo .ribbon-set { transform: translate3d(calc(-200% + 10vw + var(--lead) + var(--slide, 0) * var(--travel)), 0, 0); }
+@media (max-width: 760px) { .ribbon { --travel: 150vw; } }
+.ribbon-set > span { display: inline-flex; align-items: center; gap: .7rem; }
 .ribbon b {
   font-family: var(--font-display); font-style: italic; font-weight: 400;
-  font-size: clamp(2rem, 4.4vw, 3.8rem); letter-spacing: -.03em; text-transform: none;
-  margin-right: .35rem; font-variation-settings: 'SOFT' 60, 'WONK' 1;
+  font-size: clamp(2rem, 3.8vw, 3.6rem); line-height: 1; letter-spacing: -.03em;
+  font-variation-settings: 'SOFT' 60, 'WONK' 1;
+}
+.ribbon small {
+  font-family: var(--font-wide); font-weight: 700; line-height: 1.2;
+  font-size: clamp(.68rem, .95vw, .92rem); letter-spacing: .12em; text-transform: uppercase;
 }
 .ribbon i { font-style: normal; font-size: clamp(1rem, 1.8vw, 1.5rem); }
-/* With motion off the ribbon holds still, so it shows the five figures once,
-   wrapped to fit, and drops the echo. */
+/* With motion off the ribbons hold still, so each shows its figures once,
+   wrapped to fit. */
 @media (prefers-reduced-motion: reduce) {
   .ribbon { white-space: normal; }
-  .ribbon--echo, .ribbon-set[aria-hidden], .ribbon i { display: none; }
+  .ribbon-set[aria-hidden], .ribbon i { display: none; }
   .ribbon-row, .ribbon-set { display: flex; flex-wrap: wrap; justify-content: center; row-gap: .3rem; column-gap: clamp(1.6rem, 3.6vw, 3rem); }
-  .ribbon-row { transform: none; padding: 0 calc(10vw + 1.5rem); }
+  .ribbon-row { padding: 0 calc(10vw + 1.5rem); }
+  .ribbon .ribbon-set { transform: none; }
 }
 body.a11y-motion .ribbon { white-space: normal; }
-body.a11y-motion .ribbon--echo, body.a11y-motion .ribbon-set[aria-hidden], body.a11y-motion .ribbon i { display: none; }
+body.a11y-motion .ribbon-set[aria-hidden], body.a11y-motion .ribbon i { display: none; }
 body.a11y-motion .ribbon-row, body.a11y-motion .ribbon-set { display: flex; flex-wrap: wrap; justify-content: center; row-gap: .3rem; column-gap: clamp(1.6rem, 3.6vw, 3rem); }
-body.a11y-motion .ribbon-row { transform: none; padding: 0 calc(10vw + 1.5rem); }
+body.a11y-motion .ribbon-row { padding: 0 calc(10vw + 1.5rem); }
+body.a11y-motion .ribbon-set { transform: none; }
 
 /* ── Selected work: the stack ───────────────────────────────────────────
    Every card sticks just under the nav, each a step lower than the last, and
