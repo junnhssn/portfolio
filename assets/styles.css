@@ -294,27 +294,13 @@ html[data-theme="dark"] .icon-sun, html[data-theme="light"] .icon-moon { display
 }
 .hero-hook em { font-style: italic; color: var(--accent); font-variation-settings: 'SOFT' 60, 'WONK' 1; }
 
-/* The pen note on "overthink". app.js positions every part in pixels
-   relative to .hero-body and adds .is-on after a pause on the hero. Where
-   there is no room beside the line (phones) only the circle is drawn. */
-.hero-body { position: relative; }
-.ponder { position: absolute; inset: 0; pointer-events: none; z-index: 1; }
-.ponder svg { position: absolute; overflow: visible; fill: none; stroke: var(--accent); stroke-linecap: round; stroke-linejoin: round; }
-.ponder path { vector-effect: non-scaling-stroke; stroke-dasharray: 1; stroke-dashoffset: 1; }
-.ponder-loop { stroke-width: 2; }
-.ponder-arrow { inset: 0; width: 100%; height: 100%; stroke-width: 1.6; }
-.ponder-note {
-  position: absolute; white-space: nowrap;
-  font-family: var(--font-display); font-style: italic; font-weight: 400;
-  font-size: clamp(.95rem, 1.35vw, 1.12rem); line-height: 1.2;
+.hero-fn-mark { color: var(--accent); font-size: .6em; margin-left: .05em; line-height: 0; }
+.hero-body .hero-fn {
+  margin-top: -.2rem;
+  font-family: var(--font-display); font-style: italic; font-size: 1.02rem;
   font-variation-settings: 'SOFT' 100, 'WONK' 1;
   color: var(--accent);
-  opacity: 0; transform: rotate(-4deg) translateY(4px);
 }
-.ponder.is-on .ponder-loop path { stroke-dashoffset: 0; transition: stroke-dashoffset .85s var(--ease-out); }
-.ponder.is-on .ponder-arrow path { stroke-dashoffset: 0; transition: stroke-dashoffset .5s var(--ease-out) .7s; }
-.ponder.is-on .ponder-note { opacity: 1; transform: rotate(-4deg); transition: opacity .35s var(--ease-out) 1s, transform .45s var(--ease-out) 1s; }
-.ponder.no-room .ponder-arrow, .ponder.no-room .ponder-note { display: none; }
 
 /* Arched portrait on a blush ground, framed like the editorial references. */
 .portrait-frame { position: relative; justify-self: end; width: min(100%, 330px); }
@@ -959,9 +945,7 @@ body.a11y-contrast a { text-decoration: underline; }
 body.a11y-contrast .tag { background: var(--text); color: var(--bg); }
 /* At high contrast --bg-card collapses to the page colour and soft shadows
    carry no meaning, so containers need a real border to stay containers. */
-body.a11y-contrast .tile { box-shadow: none; border: 1px solid var(--border); }
 body.a11y-contrast .space { border: 1px solid var(--border); }
-body.a11y-contrast .tile--draft { border-style: dashed; }
 body.a11y-contrast .cta-go { background: none; border: 1px solid currentColor; }
 
 body.a11y-links a { background: #fff3a3 !important; color: #000 !important; text-decoration: underline !important; outline: 1px solid #c79a12; }
@@ -1028,13 +1012,6 @@ html.js .ink.reveal.is-visible > .wrap { opacity: 1; transform: none; }
   html.js .reveal.is-visible [data-stagger] > :nth-child(6) { transition-delay: 0.15s; }
   html.js .reveal.is-visible [data-stagger] > :nth-child(7) { transition-delay: 0.18s; }
   html.js .reveal.is-visible [data-stagger] > :nth-child(8) { transition-delay: 0.21s; }
-  /* The settled state above outranks a.tile:hover, which left these tiles
-     flat while every other card on the page lifts. */
-  html.js .reveal.is-visible [data-stagger] > a.tile {
-    transition: opacity .38s var(--ease-out), transform .35s var(--ease), box-shadow .35s var(--ease);
-  }
-  html.js .reveal.is-visible [data-stagger] > a.tile:hover { transform: translateY(-3px); transition-delay: 0s; }
-  html.js .reveal.is-visible [data-stagger] > a.tile:active { transform: translateY(0); }
 }
 
 /* The manual toggle is not the media query, so it needs its own opt-out. */
@@ -1087,7 +1064,7 @@ body.a11y-motion .hero-name .n2 { opacity: 1 !important; animation: none !import
 
 /* ── Print ────────────────────────────────────────────────────────────── */
 @media print {
-  .nav, .a11y-fab, .a11y-panel, .lightbox, .compose, .case-back, .marquee, .decor, .ponder, .stack-mark { display: none !important; }
+  .nav, .a11y-fab, .a11y-panel, .lightbox, .compose, .case-back, .marquee, .decor, .stack-mark { display: none !important; }
   .stack-item { position: static !important; }
   body { background: #fff; color: #000; }
   body::after { display: none; }
@@ -1095,71 +1072,86 @@ body.a11y-motion .hero-name .n2 { opacity: 1 !important; animation: none !import
   .section { page-break-inside: avoid; }
 }
 
-/* ── Tiles ────────────────────────────────────────────────────────────────
-   One box, reused three ways: work that is not a full case study, the off
-   the clock items, and the services grid. Saranyaa adds an item by copying
-   one <a class="tile"> or <article class="tile"> block.
-   The grid is auto-fit rather than a fixed three columns, so a row of two,
-   four or five never leaves an orphan sitting alone. */
-.tile-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(min(265px, 100%), 1fr));
-  gap: var(--gap);
+/* ── Off the clock: one of her postcards ───────────────────────────────
+   The real 2023 card on the front; the back carries a short note and the
+   three things as address lines, each one a link. The paper stays cream in
+   both themes, the way a printed card would. */
+.postcard {
+  --paper: #f6f3ee; --ink: #2a2433; --stamp: #5a3e91;
+  display: grid; grid-template-columns: 1fr 1fr;
   margin-top: clamp(1.25rem, 3vw, 2rem);
+  background: var(--paper); color: var(--ink);
+  transform: rotate(-1deg);
+  box-shadow: 0 2px 4px -2px rgba(0,0,0,.25), 0 34px 54px -32px rgba(0,0,0,.6);
 }
-.tile {
-  display: flex; flex-direction: column;
-  padding: 1.15rem 1.25rem 1.2rem;
-  background: var(--bg-card);
-  border-radius: var(--r-lg);
-  color: inherit; text-decoration: none;
-  /* Three layers rather than a flat fill: a highlight along the top edge, a
-     hairline round the whole tile, and a wide tinted diffusion underneath.
-     Together they read as a panel sitting in a tray, with no extra markup. */
-  box-shadow:
-    inset 0 1px 0 var(--highlight),
-    0 0 0 1px var(--hairline),
-    0 2px 4px -3px var(--shadow-tint),
-    0 16px 32px -26px var(--shadow-tint);
-  transition: transform .35s var(--ease), box-shadow .35s var(--ease);
+.pc-front { display: grid; align-content: center; padding: clamp(.2rem, .6vw, .5rem); }
+.pc-front img { display: block; width: 100%; height: auto; aspect-ratio: 1592 / 1128; object-fit: cover; }
+.pc-back {
+  position: relative;
+  margin: clamp(.6rem, 1.4vw, 1.1rem) 0;
+  padding: clamp(1.25rem, 2.6vw, 2rem) clamp(1.25rem, 2.8vw, 2.2rem);
+  border-left: 1px dashed rgba(42, 36, 51, .3);
 }
-a.tile:hover {
-  transform: translateY(-3px); color: inherit;
-  box-shadow:
-    inset 0 1px 0 var(--highlight),
-    0 0 0 1px var(--hairline),
-    0 4px 8px -4px var(--shadow-tint),
-    0 24px 48px -24px var(--shadow-tint);
+.pc-stamp {
+  position: absolute; top: 1.2rem; right: 1.5rem;
+  width: 62px; height: 74px; display: grid; place-items: center;
+  background: var(--stamp); outline: 2px solid var(--paper); outline-offset: -6px;
+  box-shadow: 0 0 0 1px rgba(42, 36, 51, .25); transform: rotate(3deg);
 }
-/* A real pressed state, so a tap feels like it landed. */
-a.tile:active { transform: translateY(0); }
-.tile-kicker {
+.pc-stamp i {
+  width: 34px; height: 34px; background: var(--paper);
+  -webkit-mask: url(shape-aster.svg) center / contain no-repeat;
+  mask: url(shape-aster.svg) center / contain no-repeat;
+}
+.pc-postmark {
+  position: absolute; top: 2.2rem; right: 5.6rem;
+  padding: .9rem .6rem; border: 1.5px solid var(--stamp); border-radius: 50%;
   font-family: var(--font-wide); font-size: .6rem; font-weight: 700;
-  letter-spacing: .15em; text-transform: uppercase; color: var(--accent);
+  letter-spacing: .16em; text-transform: uppercase; color: var(--stamp);
+  transform: rotate(-12deg);
 }
-.tile h3 {
-  font-family: var(--font-display); font-size: 1.22rem; font-weight: 500;
-  letter-spacing: -.01em; line-height: 1.15; margin-top: .4rem; text-wrap: balance;
+.pc-msg, .pc-sign {
+  font-family: var(--font-display); font-style: italic;
+  font-size: clamp(1.2rem, 1.9vw, 1.45rem); line-height: 1.35;
+  font-variation-settings: 'SOFT' 100, 'WONK' 1;
 }
-.tile p { margin-top: .5rem; color: var(--text-muted); font-size: .92rem; }
-/* Pushes every call to action onto the same baseline across the row. */
-.tile-go {
-  margin-top: auto; padding-top: 1rem;
-  font-family: var(--font-wide); font-size: .63rem; font-weight: 700;
-  letter-spacing: .13em; text-transform: uppercase; color: var(--accent);
+.pc-msg { margin-top: 4.6rem; max-width: 22ch; }
+.pc-sign { margin-top: .3rem; color: var(--stamp); }
+.pc-lines { list-style: none; padding: 0; margin: 1.6rem 0 0; }
+.pc-lines a {
+  display: flex; flex-wrap: wrap; justify-content: space-between; align-items: baseline; gap: .15rem 1rem;
+  padding: .7rem 0 .45rem; border-bottom: 1px solid rgba(42, 36, 51, .35);
+  color: var(--ink); text-decoration: none;
 }
-/* Inner radius tighter than the container it sits in. */
-.tile-img { width: 100%; aspect-ratio: 16 / 11; object-fit: cover; border-radius: var(--r-md); margin-bottom: .9rem; }
-/* Screenshots whose text starts hard against the left edge; a centred crop
-   would slice the first word of every line. */
-.tile-img--left { object-position: left center; }
-/* Wide artwork whose whole point is a headline, e.g. an article header. A
-   cover crop scales it to fill the height and slices both ends off the title,
-   which reads as a mistake rather than a crop. Letterbox it instead. */
-.tile-img--whole {
-  object-fit: contain;
-  background: var(--bg-soft);
-  padding: .55rem;
+.pc-lines b { font-family: var(--font-display); font-weight: 400; font-size: 1.15rem; }
+.pc-lines span {
+  font-family: var(--font-wide); font-size: .64rem; font-weight: 700;
+  letter-spacing: .12em; text-transform: uppercase; color: var(--stamp);
+  white-space: nowrap; transition: transform .18s var(--ease-out);
+}
+.pc-lines a:hover b { font-style: italic; }
+.pc-lines a:hover span { transform: translateX(.3rem); }
+.pc-lines a:active span { transform: translateX(.1rem); }
+.postcard a:focus-visible { outline-color: var(--stamp); }
+/* It arrives the way a card lands on a table: a little more turned, then
+   settling. Transform only; with motion off it simply sits at rest. */
+@media (prefers-reduced-motion: no-preference) {
+  html.js .reveal .postcard { transform: rotate(-3.5deg) translateY(28px); transition: transform .9s var(--ease-out) .15s; }
+  html.js .reveal.is-visible .postcard { transform: rotate(-1deg); }
+}
+/* Stacked on a phone the card is tall, so a steep turn swings its corners
+   past the screen edge. */
+@media (prefers-reduced-motion: no-preference) and (max-width: 760px) {
+  html.js .reveal .postcard { transform: rotate(-1.2deg) translateY(28px); }
+}
+body.a11y-motion .postcard { transform: rotate(-1deg) !important; }
+@media (max-width: 760px) {
+  .postcard { grid-template-columns: 1fr; transform: rotate(-.6deg); }
+  html.js .reveal.is-visible .postcard { transform: rotate(-.6deg); }
+  .pc-back { border-left: 0; border-top: 1px dashed rgba(42, 36, 51, .3); margin: 0 1rem 1rem; padding-inline: .2rem; }
+  .pc-msg { margin-top: 5rem; }
+  .pc-stamp { right: .6rem; }
+  .pc-postmark { right: 4.6rem; }
 }
 /* ── Other work index ──────────────────────────────────────────────────
    Six pieces as slim rows rather than two rows of picture cards, so the
@@ -1242,14 +1234,6 @@ body.a11y-motion .wi-preview img { transition: none; transform: none; }
   position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px;
   overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0;
 }
-/* Four items in a three-up grid strands one on a row by itself, so the
-   services grid runs two across and squares off. */
-.tile-grid--duo { grid-template-columns: repeat(auto-fit, minmax(min(380px, 100%), 1fr)); }
-/* Unwritten boxes. Deliberately reads as a draft so nobody mistakes the
-   placeholder wording for finished copy. */
-.tile--draft { background: none; border: 1px dashed var(--border); box-shadow: none; }
-.tile--draft p:last-child { color: var(--text-dim); font-style: italic; }
-
 /* ── Audit fixes ──────────────────────────────────────────────────────────
    Pressed feedback was missing everywhere: things lifted on hover but gave
    nothing back on click. */
@@ -1270,7 +1254,7 @@ body.a11y-motion .wi-preview img { transition: none; transform: none; }
 .metric b, .feature-metrics div b { font-variant-numeric: tabular-nums; }
 
 /* Stops a single word dangling on its own final line. */
-p, .tile p, .section-intro { text-wrap: pretty; }
+p, .section-intro { text-wrap: pretty; }
 .stack-body h3, .creator-point h3, .brief-point h3 { text-wrap: balance; }
 
 /* Inline validation message for the composer. */

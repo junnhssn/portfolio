@@ -36,7 +36,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Archivo:ital,wdth,wght@0,62..125,400..700;1,62..125,400..700&family=Fraunces:ital,opsz,wght@0,9..144,400..700;1,9..144,400..700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="assets/styles.css?v=20261012b">
+<link rel="stylesheet" href="assets/styles.css?v=20261012c">
 
 <!-- Marks that scripting is available. The scroll-in animation is scoped to
      html.js so that a failed script leaves the content visible, not blank.
@@ -119,16 +119,9 @@
       <div class="hero-grid">
         <div>
           <div class="hero-body">
-            <p class="hero-hook">I <em>write</em> things, <em>make</em> things, and (occasionally) <em>overthink</em> why people do the things they do.</p>
+            <p class="hero-hook">I <em>write</em> things, <em>make</em> things, and (occasionally) <em>overthink</em><sup class="hero-fn-mark" aria-hidden="true">*</sup> why people do the things they do.</p>
             <p>I studied psychology and journalism, so naturally I’m obsessed with both what people say and why they say it.</p>
-            <!-- Pause on the hero and a pen circles "overthink" and leaves a
-                 note beside it. app.js places it and sets it off; without
-                 JavaScript it never appears. -->
-            <span class="ponder" aria-hidden="true">
-              <svg class="ponder-loop" viewBox="0 0 200 64" preserveAspectRatio="none"><path pathLength="1" d="M36 9C82 1 168 2 192 22c14 13-8 30-58 36C78 64 20 60 8 42 0 28 22 14 58 9c28-4 70-4 96 1"/></svg>
-              <svg class="ponder-arrow"><path pathLength="1"/></svg>
-              <span class="ponder-note">still thinking about it</span>
-            </span>
+            <p class="hero-fn"><span aria-hidden="true">* </span>Professionally, this is called research.</p>
           </div>
           <div class="hero-cta">
             <a class="pill pill--solid" href="#contact">Work with me<span class="cta-go" aria-hidden="true"><svg width="12" height="12" viewBox="0 0 256 256" fill="currentColor" aria-hidden="true"><path d="M224.49,136.49l-72,72a12,12,0,0,1-17-17L187,140H40a12,12,0,0,1,0-24H187L135.51,64.48a12,12,0,0,1,17-17l72,72A12,12,0,0,1,224.49,136.49Z"/></svg></span></a>
@@ -382,28 +375,23 @@
         <p class="section-intro">The things I make when nobody is briefing me.</p>
       </div>
 
-      <!-- Add another one by copying a whole <a class="tile"> ... </a> block. -->
-      <div class="tile-grid" data-stagger>
-        <a class="tile" href="https://www.instagram.com/throughanyaslens/" target="_blank" rel="noopener">
-          <p class="tile-kicker">Photography</p>
-          <h3>@throughanyaslens</h3>
-          <p>Portraits of people, documented on a dedicated photography account that sits apart from everything else I post.</p>
-          <span class="tile-go">Instagram →</span>
+      <!-- The back of the card: to add a fourth thing, copy one <li> ... </li>
+           line and change the link and the words. -->
+      <div class="postcard">
+        <a class="pc-front" href="assets/home-postcards-1.pdf" target="_blank" rel="noopener">
+          <img src="assets/postcard-2023.jpg" width="1592" height="1128" loading="lazy" alt="One of my postcards: the open doorway of an old Bangalore shop with a Christmas tree outside, captioned December 2023, Bangalore. Opens the 2024 edition as a PDF.">
         </a>
-
-        <a class="tile" href="assets/home-postcards-1.pdf" target="_blank" rel="noopener">
-          <p class="tile-kicker">Postcards</p>
-          <h3>Postcard print</h3>
-          <p>Custom postcards designed and sent on travels and as a yearly tradition, mixing photography, illustration and storytelling.</p>
-          <span class="tile-go">2024 edition, PDF →</span>
-        </a>
-
-        <a class="tile" href="https://letterboxd.com/anya_2104/" target="_blank" rel="noopener">
-          <p class="tile-kicker">Film</p>
-          <h3>Letterboxd: anya_2104</h3>
-          <p>I love films and watch a lot of them, sometimes write about them, and log everything here.</p>
-          <span class="tile-go">Everything I watch →</span>
-        </a>
+        <div class="pc-back">
+          <span class="pc-stamp" aria-hidden="true"><i></i></span>
+          <span class="pc-postmark" aria-hidden="true">Off the clock</span>
+          <p class="pc-msg">Hi! Three things I keep coming back to. Come and find me there.</p>
+          <p class="pc-sign">Anya</p>
+          <ul class="pc-lines">
+            <li><a href="https://www.instagram.com/throughanyaslens/" target="_blank" rel="noopener"><b>I photograph people</b><span>@throughanyaslens →</span></a></li>
+            <li><a href="assets/home-postcards-1.pdf" target="_blank" rel="noopener"><b>I send postcards</b><span>2024 edition, PDF →</span></a></li>
+            <li><a href="https://letterboxd.com/anya_2104/" target="_blank" rel="noopener"><b>I log every film</b><span>Letterboxd →</span></a></li>
+          </ul>
+        </div>
       </div>
     </div>
   </section>
@@ -748,6 +736,6 @@
 </div>
 
 <div class="wi-preview" aria-hidden="true"><img alt=""></div>
-<script src="assets/app.js?v=20261012b"></script>
+<script src="assets/app.js?v=20261012c"></script>
 </body>
 </html>
