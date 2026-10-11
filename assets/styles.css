@@ -299,6 +299,9 @@ html[data-theme="dark"] .icon-sun, html[data-theme="light"] .icon-moon { display
    there is no room beside the line (phones) only the circle is drawn. */
 .hero-body { position: relative; }
 .ponder { position: absolute; inset: 0; pointer-events: none; z-index: 1; }
+/* Until app.js has placed it, the loop is stretched over the whole block,
+   and the dash offset does not fully hide a stroke stretched that far. */
+.ponder:not(.is-on) { visibility: hidden; }
 .ponder svg { position: absolute; overflow: visible; fill: none; stroke: var(--accent); stroke-linecap: round; stroke-linejoin: round; }
 .ponder path { vector-effect: non-scaling-stroke; stroke-dasharray: 1; stroke-dashoffset: 1; }
 .ponder-loop { stroke-width: 2; }
@@ -1205,36 +1208,43 @@ a.panel-in:hover { color: inherit; }
 }
 
 @media (min-width: 861px) and (hover: hover) and (pointer: fine) {
-  html.js .panels { display: flex; gap: 8px; height: clamp(28rem, 36vw, 32rem); }
-  html.js .panel { flex: 1 1 0; min-width: 0; transition: flex-grow .65s var(--ease-out); }
-  html.js .panel.is-open { flex-grow: 4.6; }
-  html.js .panel-in { position: relative; display: block; background: var(--accent); box-shadow: none; }
-  html.js .panel-img {
-    position: absolute; inset: 0 0 auto 0; height: 100%; aspect-ratio: auto;
-    filter: grayscale(1) contrast(1.1); mix-blend-mode: multiply; opacity: .3;
-    transition: height .65s var(--ease-out), opacity .4s var(--ease);
+  /* --open is the width of the open panel: six panels, five 8px gaps,
+     flex 4.6 against five at 1. The picture and the text are fixed at
+     that width, so opening a panel uncovers them instead of re-cropping
+     and reflowing them every frame. Only flex-grow and opacity animate. */
+  html.js .panels {
+    --open: calc((100cqw - 40px) * 4.6 / 9.6);
+    --glide: cubic-bezier(.45, 0, .15, 1);
+    container-type: inline-size;
+    display: flex; gap: 8px; height: clamp(28rem, 36vw, 32rem);
   }
-  html.js .panel.is-open .panel-in { background: var(--bg-card); box-shadow: 0 0 0 1px var(--hairline); }
-  html.js .panel.is-open .panel-img { height: 52%; filter: none; mix-blend-mode: normal; opacity: 1; }
+  html.js .panel { flex: 1 1 0; min-width: 0; transition: flex-grow .75s var(--glide); }
+  html.js .panel.is-open { flex-grow: 4.6; }
+  html.js .panel-in { position: relative; display: block; background: var(--accent); box-shadow: none; contain: paint; }
+  html.js .panel-img {
+    position: absolute; left: 0; top: 0; width: var(--open); height: 52%; aspect-ratio: auto;
+    opacity: .22; transition: opacity .6s var(--glide);
+  }
+  html.js .panel.is-open .panel-img { opacity: 1; }
   /* Kicker and title run up the spine as two lines, read bottom to top. */
   html.js .panel-spine {
     display: flex; flex-direction: column; gap: .35rem;
     position: absolute; left: 1rem; bottom: 1.25rem;
     writing-mode: vertical-rl; text-orientation: sideways; transform: rotate(180deg);
     color: var(--accent-ink); white-space: nowrap;
-    transition: opacity .3s var(--ease) .2s, visibility 0s .2s;
+    transition: opacity .35s var(--glide) .3s, visibility 0s .3s;
   }
   html.js .panel-spine span { font-family: var(--font-wide); font-size: .58rem; font-weight: 700; letter-spacing: .16em; text-transform: uppercase; }
   html.js .panel-spine b { font-family: var(--font-display); font-size: 1.45rem; font-weight: 400; line-height: 1; }
-  html.js .panel.is-open .panel-spine { opacity: 0; visibility: hidden; transition: opacity .2s var(--ease), visibility 0s .2s; }
-  /* A fixed width, so the text does not reflow while the panel opens. */
+  html.js .panel.is-open .panel-spine { opacity: 0; visibility: hidden; transition: opacity .25s var(--glide), visibility 0s .25s; }
   html.js .panel-body {
-    position: absolute; left: 0; top: 52%; bottom: 0;
-    width: clamp(22rem, 33vw, 30rem); padding: 1.15rem 1.5rem;
-    opacity: 0; transition: opacity .2s var(--ease);
+    position: absolute; left: 0; top: 52%; bottom: 0; width: var(--open);
+    padding: 1.15rem 1.5rem; background: var(--bg-card);
+    opacity: 0; transition: opacity .3s var(--glide);
   }
+  html.js .panel-body > * { max-width: 30rem; }
   html.js .panel-title { font-size: clamp(1.6rem, 2.3vw, 2.1rem); font-style: italic; }
-  html.js .panel.is-open .panel-body { opacity: 1; transition: opacity .45s var(--ease) .25s; }
+  html.js .panel.is-open .panel-body { opacity: 1; transition: opacity .5s var(--glide) .2s; }
 }
 @media (prefers-reduced-motion: reduce) {
   .panel, .panel-img, .panel-spine, .panel-body, .panel.is-open .panel-body { transition: none !important; }
