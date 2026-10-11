@@ -136,7 +136,7 @@
     document.addEventListener('click', function () { setPanel(false); });
   }
 
-  /* ── Motion: parallax shapes, the work stack, the counting numbers ──── */
+  /* ── Motion: parallax shapes, the work stack, the numbers ribbon ──── */
   var parallaxEls = Array.prototype.slice.call(document.querySelectorAll('.parallax'));
   var stackItems = Array.prototype.slice.call(document.querySelectorAll('.stack-item'));
   var parallaxQueued = false;
@@ -187,81 +187,20 @@
     if (document.fonts && document.fonts.ready) document.fonts.ready.then(syncStackHeights);
   }
 
-  // The numbers run up from zero once the band is properly in view. Timed
-  // rather than tied to scroll position: a mouse wheel moves the page in
-  // ~100px steps, so scroll-keyed numbers jumped in visible steps, and a
-  // reader who stopped mid-band was left looking at a half-counted figure.
-  // The real figure stays in the markup for screen readers and is what shows
-  // with motion off.
-  var countBand = document.querySelector('.numbers-line');
-  var counters = [];
-  var countDone = false;
-  var countStart = 0;
-  var COUNT_MS = 1600;
-
-  function formatCount(c, value) {
-    if (c.unit && Math.round(value) < 1e3) return Math.round(value) + c.plus;
-    if (c.unit === 'M') {
-      var k = Math.round(value / 1e3);
-      return (k >= 1e3 ? Math.round(value / 1e6) + 'M' : k + 'K') + c.plus;
-    }
-    if (c.unit === 'K') return Math.round(value / 1e3) + 'K' + c.plus;
-    return (c.comma ? Math.round(value).toLocaleString('en-US') : String(Math.round(value))) + c.plus;
-  }
-
-  function setupCounters() {
-    if (!countBand || motionOff()) return;
-    countBand.querySelectorAll('em').forEach(function (b) {
-      var text = b.textContent.trim();
-      var m = /^([\d,]+)([KM]?)(\+?)$/.exec(text);
-      if (!m) return;
-      var unit = m[2];
-      var target = parseInt(m[1].replace(/,/g, ''), 10) * (unit === 'M' ? 1e6 : unit === 'K' ? 1e3 : 1);
-      b.innerHTML = '';
-      b.classList.add('count');
-      var real = document.createElement('span');
-      real.className = 'count-real';
-      real.textContent = text;
-      var shown = document.createElement('span');
-      shown.setAttribute('aria-hidden', 'true');
-      b.appendChild(real);
-      b.appendChild(shown);
-      var c = { el: shown, text: text, target: target, unit: unit, plus: m[3], comma: m[1].indexOf(',') > -1 };
-      shown.textContent = formatCount(c, 0);
-      counters.push(c);
-    });
-  }
-
-  function finishCounts() {
-    countDone = true;
-    counters.forEach(function (c) { c.el.textContent = c.text; });
-  }
-
-  function tickCounts(now) {
-    if (countDone) return;
-    if (motionOff()) { finishCounts(); return; }
-    var t = clamp01((now - countStart) / COUNT_MS);
-    var eased = 1 - Math.pow(1 - t, 4);
-    counters.forEach(function (c) { c.el.textContent = formatCount(c, c.target * eased); });
-    if (t >= 1) finishCounts();
-    else requestAnimationFrame(tickCounts);
-  }
-
-  function updateCounts() {
-    if (countDone || countStart || !counters.length) return;
-    if (motionOff()) { finishCounts(); return; }
-    var r = countBand.getBoundingClientRect();
-    // Already scrolled past (a deep link, or a jump from the nav): no one is
-    // watching, so show the real figures rather than count off-screen.
-    if (r.bottom < 0) { finishCounts(); return; }
-    if (r.top > window.innerHeight * 0.85) return;
-    countStart = performance.now();
-    requestAnimationFrame(tickCounts);
+  // The numbers ribbon slides sideways as its band crosses the viewport, the
+  // echo behind it the other way. One variable, 0 as the band enters at the
+  // bottom and 1 as it leaves at the top; the CSS turns it into distance.
+  var ribbonBand = document.querySelector('.ribbon-band');
+  function updateRibbon() {
+    if (!ribbonBand) return;
+    var r = ribbonBand.getBoundingClientRect();
+    var vh = window.innerHeight;
+    if (r.bottom < 0 || r.top > vh) return;
+    ribbonBand.style.setProperty('--slide', clamp01((vh - r.top) / (vh + r.height)).toFixed(4));
   }
 
   function updateParallax() {
     parallaxQueued = false;
-    updateCounts();
     if (motionOff()) return;
     var y = window.pageYOffset;
     parallaxEls.forEach(function (el) {
@@ -269,15 +208,14 @@
       el.style.transform = 'translate3d(0,' + (y * speed).toFixed(1) + 'px,0)';
     });
     updateStack();
+    updateRibbon();
   }
 
   function clearMotion() {
     parallaxEls.forEach(function (el) { el.style.transform = ''; });
     clearStack();
-    if (counters.length) finishCounts();
+    if (ribbonBand) ribbonBand.style.removeProperty('--slide');
   }
-
-  setupCounters();
 
   window.addEventListener('scroll', function () {
     if (parallaxQueued) return;

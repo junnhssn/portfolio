@@ -36,7 +36,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Archivo:ital,wdth,wght@0,62..125,400..700;1,62..125,400..700&family=Fraunces:ital,opsz,wght@0,9..144,400..700;1,9..144,400..700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="assets/styles.css">
+<link rel="stylesheet" href="assets/styles.css?v=20261012">
 
 <!-- Marks that scripting is available. The scroll-in animation is scoped to
      html.js so that a failed script leaves the content visible, not blank.
@@ -284,12 +284,22 @@
   </section>
 
   <!-- ── Numbers ──────────────────────────────────────────────────────── -->
-  <section class="section ink reveal">
+  <section class="section ink reveal ribbon-band">
     <img class="decor decor--burst parallax" data-speed="-0.06" src="assets/shape-burst.svg" alt="" aria-hidden="true" width="400" height="400">
     <div class="wrap">
       <p class="eyebrow">By the numbers</p>
-      <p class="numbers-line">I researched <em>300+</em> creators for Morphic, closed <em>50+</em> collaborations, and helped the launch reach <em>1M+</em> impressions. On Twitter, <em>3,000+</em> people follow me writing in public, and one organic post reached <em>190K</em> views.</p>
+      <ul class="visually-hidden">
+        <li>300+ creators researched for Morphic partnerships</li>
+        <li>50+ creator collaborations closed for Morphic</li>
+        <li>1M+ impressions across the Morphic launch</li>
+        <li>3,000+ followers writing in public on Twitter</li>
+        <li>190K views on a single organic post</li>
+      </ul>
     </div>
+    <!-- The ribbon repeats its five figures so it never runs out while it
+         slides; the list above is what screen readers get. -->
+    <div class="ribbon" aria-hidden="true"><div class="ribbon-row"><span class="ribbon-set"><span><b>300+</b> creators researched</span><i>✺</i><span><b>50+</b> collaborations closed</span><i>✺</i><span><b>1M+</b> launch impressions</span><i>✺</i><span><b>3,000+</b> followers</span><i>✺</i><span><b>190K</b> views on one post</span><i>✺</i></span><span class="ribbon-set" aria-hidden="true"><span><b>300+</b> creators researched</span><i>✺</i><span><b>50+</b> collaborations closed</span><i>✺</i><span><b>1M+</b> launch impressions</span><i>✺</i><span><b>3,000+</b> followers</span><i>✺</i><span><b>190K</b> views on one post</span><i>✺</i></span><span class="ribbon-set" aria-hidden="true"><span><b>300+</b> creators researched</span><i>✺</i><span><b>50+</b> collaborations closed</span><i>✺</i><span><b>1M+</b> launch impressions</span><i>✺</i><span><b>3,000+</b> followers</span><i>✺</i><span><b>190K</b> views on one post</span><i>✺</i></span></div></div>
+    <div class="ribbon ribbon--echo" aria-hidden="true"><div class="ribbon-row"><span class="ribbon-set"><span><b>300+</b> creators researched</span><i>✺</i><span><b>50+</b> collaborations closed</span><i>✺</i><span><b>1M+</b> launch impressions</span><i>✺</i><span><b>3,000+</b> followers</span><i>✺</i><span><b>190K</b> views on one post</span><i>✺</i></span><span class="ribbon-set" aria-hidden="true"><span><b>300+</b> creators researched</span><i>✺</i><span><b>50+</b> collaborations closed</span><i>✺</i><span><b>1M+</b> launch impressions</span><i>✺</i><span><b>3,000+</b> followers</span><i>✺</i><span><b>190K</b> views on one post</span><i>✺</i></span><span class="ribbon-set" aria-hidden="true"><span><b>300+</b> creators researched</span><i>✺</i><span><b>50+</b> collaborations closed</span><i>✺</i><span><b>1M+</b> launch impressions</span><i>✺</i><span><b>3,000+</b> followers</span><i>✺</i><span><b>190K</b> views on one post</span><i>✺</i></span></div></div>
   </section>
 
   <!-- ── Personal projects ────────────────────────────────────────────── -->
@@ -736,6 +746,6 @@
 </div>
 
 <div class="wi-preview" aria-hidden="true"><img alt=""></div>
-<script src="assets/app.js"></script>
+<script src="assets/app.js?v=20261012"></script>
 </body>
 </html>

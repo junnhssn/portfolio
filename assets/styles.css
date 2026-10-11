@@ -504,25 +504,49 @@ body.a11y-motion .cursor-glow { display: none !important; }
 @keyframes marquee { to { transform: translateX(-100%); } }
 
 /* ── Stat band ────────────────────────────────────────────────────────── */
-/* The figures read as part of a sentence rather than a row of tiles: a row of
-   big number, small label, accent rule is the most templated block a page
-   can have. */
-.numbers-line {
-  font-family: var(--font-display); font-weight: 400;
-  font-size: clamp(1.6rem, 3.4vw, 2.9rem); line-height: 1.24; letter-spacing: -.02em;
-  max-width: 30ch; margin-top: 1.4rem; text-wrap: pretty;
+/* By the numbers: a violet ribbon laid across the band, tilted, with a
+   fainter echo crossing behind it. app.js sets --slide (0 to 1) as the band
+   scrolls past; each row holds the five figures three times over so the
+   visible stretch never runs out. */
+.ribbon-band { overflow: clip; padding-bottom: clamp(4rem, 9vw, 7rem); }
+.ribbon {
+  position: relative; z-index: 1;
+  width: 120vw; margin: clamp(1.6rem, 4vw, 2.6rem) 0 0 -10vw;
+  padding: clamp(.7rem, 1.6vw, 1.1rem) 0;
+  background: var(--accent); color: var(--accent-ink);
+  transform: rotate(-2.5deg); white-space: nowrap;
 }
-.numbers-line em {
-  font-style: italic; color: var(--accent);
-  font-size: 1.5em; line-height: .8; letter-spacing: -.03em;
-  font-variation-settings: 'SOFT' 60, 'WONK' 1;
-  font-variant-numeric: tabular-nums;
+.ribbon--echo {
+  z-index: 0; margin-top: clamp(.6rem, 1.6vw, 1.4rem);
+  background: transparent; color: var(--accent);
+  border-block: 1px solid var(--accent);
+  transform: rotate(1.5deg);
 }
-/* While a figure counts, its final text stays in place, invisible, holding
-   the width, so the sentence never re-wraps under the moving digits. */
-.count { display: inline-grid; }
-.count > * { grid-area: 1 / 1; }
-.count-real { opacity: 0; }
+.ribbon-row { display: inline-flex; transform: translate3d(calc(-6% - var(--slide, 0) * 16%), 0, 0); will-change: transform; }
+.ribbon--echo .ribbon-row { transform: translate3d(calc(-24% + var(--slide, 0) * 16%), 0, 0); }
+.ribbon-set { display: inline-flex; align-items: baseline; gap: clamp(1.2rem, 2.4vw, 2.2rem); padding-right: clamp(1.2rem, 2.4vw, 2.2rem); }
+.ribbon-set > span {
+  font-family: var(--font-wide); font-weight: 700;
+  font-size: clamp(.72rem, 1.2vw, 1.05rem); letter-spacing: .12em; text-transform: uppercase;
+}
+.ribbon b {
+  font-family: var(--font-display); font-style: italic; font-weight: 400;
+  font-size: clamp(2rem, 4.4vw, 3.8rem); letter-spacing: -.03em; text-transform: none;
+  margin-right: .35rem; font-variation-settings: 'SOFT' 60, 'WONK' 1;
+}
+.ribbon i { font-style: normal; font-size: clamp(1rem, 1.8vw, 1.5rem); }
+/* With motion off the ribbon holds still, so it shows the five figures once,
+   wrapped to fit, and drops the echo. */
+@media (prefers-reduced-motion: reduce) {
+  .ribbon { white-space: normal; }
+  .ribbon--echo, .ribbon-set[aria-hidden], .ribbon i { display: none; }
+  .ribbon-row, .ribbon-set { display: flex; flex-wrap: wrap; justify-content: center; row-gap: .3rem; column-gap: clamp(1.6rem, 3.6vw, 3rem); }
+  .ribbon-row { transform: none; padding: 0 calc(10vw + 1.5rem); }
+}
+body.a11y-motion .ribbon { white-space: normal; }
+body.a11y-motion .ribbon--echo, body.a11y-motion .ribbon-set[aria-hidden], body.a11y-motion .ribbon i { display: none; }
+body.a11y-motion .ribbon-row, body.a11y-motion .ribbon-set { display: flex; flex-wrap: wrap; justify-content: center; row-gap: .3rem; column-gap: clamp(1.6rem, 3.6vw, 3rem); }
+body.a11y-motion .ribbon-row { transform: none; padding: 0 calc(10vw + 1.5rem); }
 
 /* ── Selected work: the stack ───────────────────────────────────────────
    Every card sticks just under the nav, each a step lower than the last, and
