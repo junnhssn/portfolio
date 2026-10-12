@@ -91,6 +91,9 @@ html[data-theme="light"] .ink {
 
 /* ── Base ─────────────────────────────────────────────────────────────── */
 html { font-size: var(--fs-base); scroll-behavior: smooth; }
+/* The Reduce motion toggle sets a class on body, which the rules for
+   body.a11y-motion * cannot reach back up to html. */
+html:has(body.a11y-motion) { scroll-behavior: auto; }
 
 body {
   background: var(--bg);
@@ -162,7 +165,9 @@ h1[tabindex="-1"]:focus { outline: none; }
   color: var(--accent);
 }
 
-.dsplit--muted .dsplit-b { color: var(--text); opacity: .3; }
+/* Faded, but still 3:1 against the section background (WCAG large text).
+   Opacity .3 measured under 2:1 in the light theme. */
+.dsplit--muted .dsplit-b { color: var(--text-dim); color: color-mix(in srgb, var(--text) 52%, var(--bg)); }
 
 .eyebrow {
   display: inline-flex; align-items: center; gap: .5rem;
@@ -766,6 +771,9 @@ figcaption {
 .cx-receipt { align-self: flex-end; margin: -.2rem .4rem 0 0; font-size: .74rem; color: var(--text-dim); }
 .cx-send:disabled, .cx-send[aria-disabled="true"] { cursor: default; filter: none; transform: none; }
 .cx-compose input:read-only, .cx-compose textarea:read-only { color: var(--text-dim); }
+/* The placeholders are the only visible labels, so they need text contrast;
+   the browser default grey fell to about 3.7:1 on the soft field background. */
+.cx-compose ::placeholder { color: var(--text-dim); opacity: 1; }
 .cx-compose .compose-hint a { color: var(--accent); }
 .copy-flag {
   display: inline-block; margin-left: .5em; padding: .1em .55em; border-radius: 999px;

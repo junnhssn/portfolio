@@ -16,14 +16,21 @@
   var body = document.body;
 
   /* ── Theme ─────────────────────────────────────────────────────────── */
-  function preferredTheme() {
+  var systemDark = window.matchMedia('(prefers-color-scheme: dark)');
+
+  function savedTheme() {
     var saved = null;
     try { saved = localStorage.getItem(THEME_KEY); } catch (e) { /* private mode */ }
-    if (saved === 'light' || saved === 'dark') return saved;
-    return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+    return saved === 'light' || saved === 'dark' ? saved : null;
   }
 
-  function applyTheme(theme) {
+  function preferredTheme() {
+    return savedTheme() || (systemDark.matches ? 'dark' : 'light');
+  }
+
+  // Only an explicit choice is remembered. Until the visitor makes one, the
+  // page keeps following the system setting, including changes to it.
+  function applyTheme(theme, remember) {
     html.setAttribute('data-theme', theme);
     var btn = document.getElementById('themeBtn');
     if (btn) {
@@ -31,15 +38,22 @@
     }
     var meta = document.querySelector('meta[name="theme-color"]');
     if (meta) meta.setAttribute('content', theme === 'dark' ? '#15131c' : '#f7f6fb');
+    if (!remember) return;
     try { localStorage.setItem(THEME_KEY, theme); } catch (e) { /* ignore */ }
   }
 
-  applyTheme(preferredTheme());
+  applyTheme(preferredTheme(), false);
+
+  if (systemDark.addEventListener) {
+    systemDark.addEventListener('change', function () {
+      if (!savedTheme()) applyTheme(systemDark.matches ? 'dark' : 'light', false);
+    });
+  }
 
   var themeBtn = document.getElementById('themeBtn');
   if (themeBtn) {
     themeBtn.addEventListener('click', function () {
-      applyTheme(html.getAttribute('data-theme') === 'dark' ? 'light' : 'dark');
+      applyTheme(html.getAttribute('data-theme') === 'dark' ? 'light' : 'dark', true);
     });
   }
 

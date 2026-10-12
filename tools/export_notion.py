@@ -31,6 +31,9 @@ ASSETS = os.path.join(HERE, "assets")
 
 ATTACHMENT_TYPES = {"image", "pdf", "file", "video"}
 
+# Names of attachments that could not be downloaded, reported at the end.
+FAILED_DOWNLOADS = []
+
 
 def post(path, payload):
     req = urllib.request.Request(
@@ -239,6 +242,7 @@ def walk(blocks, block_id, page_slug, out, seen, section, counter):
                 print(f"  {name}  {size // 1024} KB -> {final} KB")
             except Exception as exc:  # noqa: BLE001
                 print(f"  FAILED {name}: {exc}", file=sys.stderr)
+                FAILED_DOWNLOADS.append(name)
                 return section
             out.append(
                 {
@@ -282,13 +286,19 @@ def main():
         content[slug] = export(page_id, slug)
 
     dest = os.path.join(HERE, "content.json")
-    with open(dest, "w") as f:
+    with open(dest, "w", encoding="utf-8") as f:
         json.dump(content, f, indent=2, ensure_ascii=False)
 
     files = sorted(os.listdir(ASSETS))
     total = sum(os.path.getsize(os.path.join(ASSETS, f)) for f in files)
     print(f"\n{len(files)} files in assets/ ({total // 1024} KB)")
     print(f"wrote {dest}")
+
+    # A missing attachment leaves a gap in content.json, so say so loudly
+    # rather than finishing as if the export were complete.
+    if FAILED_DOWNLOADS:
+        print(f"{len(FAILED_DOWNLOADS)} attachment(s) failed: {', '.join(FAILED_DOWNLOADS)}", file=sys.stderr)
+        sys.exit(1)
 
 
 if __name__ == "__main__":

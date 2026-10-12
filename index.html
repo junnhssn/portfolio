@@ -32,11 +32,12 @@
 <meta name="twitter:creator" content="@holasaranyahere">
 
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' fill='%235a3e91'/%3E%3Ctext x='50' y='73' font-family='Georgia,serif' font-size='64' font-style='italic' fill='%23f7f6fb' text-anchor='middle'%3ES%3C/text%3E%3C/svg%3E">
+<link rel="apple-touch-icon" href="assets/apple-touch-icon.png">
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Archivo:ital,wdth,wght@0,62..125,400..700;1,62..125,400..700&family=Fraunces:ital,opsz,wght@0,9..144,400..700;1,9..144,400..700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="assets/styles.css?v=20261013a">
+<link rel="stylesheet" href="assets/styles.css?v=20261013b">
 
 <!-- Marks that scripting is available. The scroll-in animation is scoped to
      html.js so that a failed script leaves the content visible, not blank.
@@ -47,6 +48,13 @@
 <script>
   var d = document.documentElement;
   d.classList.add('js');
+  // The theme is set here, before first paint, so a dark-mode visitor does
+  // not see the light page flash while app.js loads at the end of the body.
+  try {
+    var savedTheme = localStorage.getItem('sr_theme');
+    if (savedTheme === 'light' || savedTheme === 'dark') d.setAttribute('data-theme', savedTheme);
+    else if (window.matchMedia('(prefers-color-scheme: dark)').matches) d.setAttribute('data-theme', 'dark');
+  } catch (e) { /* private mode: app.js applies the system theme */ }
   function releaseName() { d.classList.add('fonts-ready'); }
   if (document.fonts && document.fonts.ready) {
     document.fonts.ready.then(releaseName);
@@ -62,8 +70,9 @@
   "@type": "Person",
   "name": "Saranyaa Ramesh",
   "jobTitle": "Writer & Creative Strategist",
-  "email": "mailto:saranyaar2104@gmail.com",
-  "image": "assets/home-profile.jpg",
+  "email": "saranyaar2104@gmail.com",
+  "image": "https://saranyaaramesh2104.github.io/portfolio/assets/home-profile.jpg",
+  "url": "https://saranyaaramesh2104.github.io/portfolio/",
   "description": "Writer and creative strategist with a background in psychology and journalism, working across content, brand, social, and growth.",
   "knowsAbout": ["Content Strategy", "Copywriting", "SEO", "Brand Communication", "Social Media", "Product Marketing"],
   "sameAs": [
@@ -136,7 +145,7 @@
         </div>
 
         <div class="portrait-frame">
-          <img class="portrait" src="assets/home-profile.jpg" width="787" height="1400"
+          <img class="portrait" src="assets/home-profile.webp" width="787" height="1400" fetchpriority="high"
                alt="Saranyaa Ramesh, smiling, with curly shoulder-length hair, lavender eyeshadow and a white T-shirt.">
         </div>
       </div>
@@ -216,7 +225,7 @@
           <a class="stack-card" href="#/morphic">
             <span class="stack-mark case-mark--morphic" aria-hidden="true"></span>
             <div class="stack-media">
-              <img src="assets/morphic-product-marketing-launch-3.jpg" loading="lazy"
+              <img src="assets/morphic-product-marketing-launch-3.webp" loading="lazy"
                    alt="Morphic launch email introducing Workflows, with a product preview and a call to action." width="940" height="1306">
             </div>
             <div class="stack-body">
@@ -236,7 +245,7 @@
           <a class="stack-card" href="#/headout">
             <span class="stack-mark case-mark--headout" aria-hidden="true"></span>
             <div class="stack-media">
-              <img src="assets/home-writing-marketing-1.jpg" loading="lazy"
+              <img src="assets/home-writing-marketing-1.webp" loading="lazy"
                    alt="Headout landing page for Grévin Wax Museum tickets in Paris." width="1327" height="871">
             </div>
             <div class="stack-body">
@@ -322,7 +331,7 @@
       <ul class="panels" data-stagger>
       <li class="panel is-open">
         <a class="panel-in" href="assets/home-design-5.pdf" target="_blank" rel="noopener">
-          <img class="panel-img" src="assets/other-ui-prototype.jpg" loading="lazy" alt="Mobile app screen titled Find a therapist, with a search field and a list of therapists filtered to CBT.">
+          <img class="panel-img" src="assets/other-ui-prototype.jpg" loading="lazy" alt="Mobile app screen titled Find a therapist, with a search field and a list of therapists filtered to CBT." width="738" height="507">
           <span class="panel-spine" aria-hidden="true"><span>Product design</span><b>Mental health app</b></span>
           <span class="panel-body">
             <span class="panel-kicker">Product design</span>
@@ -334,7 +343,7 @@
       </li>
       <li class="panel">
         <a class="panel-in" href="https://saranyaa1310.substack.com/" target="_blank" rel="noopener">
-          <img class="panel-img" src="assets/home-writing-marketing-5.jpg" loading="lazy" alt="Anya’s Newsletter homepage on Substack, showing recent essays and a most-popular list.">
+          <img class="panel-img" src="assets/home-writing-marketing-5.webp" loading="lazy" alt="Anya’s Newsletter homepage on Substack, showing recent essays and a most-popular list." width="1400" height="750">
           <span class="panel-spine" aria-hidden="true"><span>Newsletter</span><b>Anya’s Newsletter</b></span>
           <span class="panel-body">
             <span class="panel-kicker">Newsletter</span>
@@ -346,7 +355,7 @@
       </li>
       <li class="panel">
         <a class="panel-in" href="https://twitter.com/holasaranyahere" target="_blank" rel="noopener">
-          <img class="panel-img panel-img--left" src="assets/home-content-2.png" loading="lazy" alt="A post on X from @holasaranyahere about sending postcards, showing 64.7K views.">
+          <img class="panel-img panel-img--left" src="assets/home-content-2.png" loading="lazy" alt="A post on X from @holasaranyahere about sending postcards, showing 64.7K views." width="584" height="322">
           <span class="panel-spine" aria-hidden="true"><span>Writing in public</span><b>Short-form on X</b></span>
           <span class="panel-body">
             <span class="panel-kicker">Writing in public</span>
@@ -358,7 +367,7 @@
       </li>
       <li class="panel">
         <div class="panel-in" tabindex="0">
-          <img class="panel-img" src="assets/home-mental-health-discord-moderation-1.jpg" loading="lazy" alt="Channel list for a peer support Discord server, with channels for external resources, new users and feedback.">
+          <img class="panel-img" src="assets/home-mental-health-discord-moderation-1.jpg" loading="lazy" alt="Channel list for a peer support Discord server, with channels for external resources, new users and feedback." width="1147" height="645">
           <span class="panel-spine" aria-hidden="true"><span>Community</span><b>Peer support server</b></span>
           <span class="panel-body">
             <span class="panel-kicker">Community</span>
@@ -369,7 +378,7 @@
       </li>
       <li class="panel">
         <a class="panel-in" href="https://www.instagram.com/anyaohnanana" target="_blank" rel="noopener">
-          <img class="panel-img" src="assets/instagram.png" loading="lazy" alt="Anya’s Instagram profile, described as a person of the internet who occasionally makes videos.">
+          <img class="panel-img" src="assets/instagram.webp" loading="lazy" alt="Anya’s Instagram profile, described as a person of the internet who occasionally makes videos." width="1400" height="492">
           <span class="panel-spine" aria-hidden="true"><span>Personal brand</span><b>Me, on Instagram</b></span>
           <span class="panel-body">
             <span class="panel-kicker">Personal brand</span>
@@ -381,7 +390,7 @@
       </li>
       <li class="panel">
         <a class="panel-in" href="assets/ghostwriting.png" target="_blank" rel="noopener">
-          <img class="panel-img panel-img--top" src="assets/ghostwriting.png" loading="lazy" alt="LinkedIn post written in a founder’s voice about moving from fintech to mental health, with the founder’s details removed.">
+          <img class="panel-img panel-img--top" src="assets/ghostwriting.webp" loading="lazy" alt="LinkedIn post written in a founder’s voice about moving from fintech to mental health, with the founder’s details removed." width="543" height="427">
           <span class="panel-spine" aria-hidden="true"><span>Ghostwriting &amp; engagement</span><b>Founder voice on LinkedIn</b></span>
           <span class="panel-body">
             <span class="panel-kicker">Ghostwriting &amp; engagement</span>
@@ -406,7 +415,7 @@
            line and change the link and the words. -->
       <div class="postcard">
         <a class="pc-front" href="assets/home-postcards-1.pdf" target="_blank" rel="noopener">
-          <img src="assets/postcard-2023.jpg" width="1592" height="1128" loading="lazy" alt="One of my postcards: the open doorway of an old Bangalore shop with a Christmas tree outside, captioned December 2023, Bangalore. Opens the 2024 edition as a PDF.">
+          <img src="assets/postcard-2023.webp" width="1592" height="1128" loading="lazy" alt="One of my postcards: the open doorway of an old Bangalore shop with a Christmas tree outside, captioned December 2023, Bangalore. Opens the 2024 edition as a PDF.">
         </a>
         <div class="pc-back">
           <span class="pc-stamp" aria-hidden="true"><i></i></span>
@@ -433,7 +442,7 @@
 
       <div class="cx">
         <div class="cx-top">
-          <img src="assets/home-profile.jpg" alt="" width="44" height="44" loading="lazy">
+          <img src="assets/home-profile.webp" alt="" width="44" height="44" loading="lazy">
           <p><b>Anya</b><span>usually replies within a day</span></p>
         </div>
 
@@ -519,22 +528,22 @@
       <p>The Workflows launch ran across the founder’s personal account, the brand’s social channels, LinkedIn, and email: one narrative, retuned for each place it landed.</p>
       <div class="shots shots--tight shots--slides">
         <figure>
-          <img class="shot shot--fit-tall" src="assets/morphic-product-marketing-launch-1.png" loading="lazy"
+          <img class="shot shot--fit-tall" src="assets/morphic-product-marketing-launch-1.webp" loading="lazy"
                alt="Launch thread from Morphic founder Jaynti Kanani introducing Workflows, listing 72 available workflows." width="1152" height="1334">
           <figcaption>Founder launch thread on X</figcaption>
         </figure>
         <figure>
-          <img class="shot shot--fit-tall" src="assets/morphic-product-marketing-launch-2.png" loading="lazy"
+          <img class="shot shot--fit-tall" src="assets/morphic-product-marketing-launch-2.webp" loading="lazy"
                alt="Instagram post from @morphicstudios introducing Workflows with the same storyboarding and UGC framing." width="960" height="808">
           <figcaption>Brand Instagram channel</figcaption>
         </figure>
         <figure>
-          <img class="shot shot--fit-tall" src="assets/morphic-product-marketing-launch-3.jpg" loading="lazy"
+          <img class="shot shot--fit-tall" src="assets/morphic-product-marketing-launch-3.webp" loading="lazy"
                alt="Morphic launch email headed ‘Introducing Workflows’ with a product preview and a ‘Check out launch’ button." width="940" height="1306">
           <figcaption>Launch email</figcaption>
         </figure>
         <figure>
-          <img class="shot shot--fit-tall" src="assets/morphic-product-marketing-launch-4.png" loading="lazy"
+          <img class="shot shot--fit-tall" src="assets/morphic-product-marketing-launch-4.webp" loading="lazy"
                alt="Morphic LinkedIn post announcing Workflows as the biggest thing shipped to date." width="1088" height="954">
           <figcaption>LinkedIn announcement</figcaption>
         </figure>
@@ -633,7 +642,7 @@
           <h2>Page I worked on</h2>
           <figure>
             <a class="shot-link" href="https://www.headout.com/grevin-wax-museum-tickets/grevin-paris-wax-museum-ticket-e-2874/" target="_blank" rel="noopener">
-              <img class="shot shot--wide shot--left" src="assets/grevinmuseum.jpg" loading="lazy"
+              <img class="shot shot--wide shot--left" src="assets/grevinmuseum.webp" loading="lazy"
                    alt="Headout landing page for Grévin Wax Museum entry tickets in Paris. Opens the live page in a new tab." width="1600" height="879">
             </a>
             <figcaption>Grévin Wax Museum tickets on Headout. Open the live page.</figcaption>
@@ -765,7 +774,7 @@
   <button class="a11y-reset" id="a11yReset" type="button">Reset all</button>
 </div>
 
-<script src="assets/app.js?v=20261013a"></script>
+<script src="assets/app.js?v=20261013b"></script>
   <p class="visually-hidden" id="copyNote" aria-live="polite"></p>
 </body>
 </html>
