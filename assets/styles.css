@@ -764,6 +764,12 @@ figcaption {
 .cx-send:disabled { cursor: default; filter: none; transform: none; }
 .cx-compose input:read-only, .cx-compose textarea:read-only { color: var(--text-dim); }
 .cx-compose .compose-hint a { color: var(--accent); }
+.copy-flag {
+  display: inline-block; margin-left: .5em; padding: .1em .55em; border-radius: 999px;
+  background: var(--accent); color: var(--accent-ink);
+  font-family: var(--font-wide); font-size: .62rem; font-weight: 700; letter-spacing: .1em; text-transform: uppercase;
+}
+@media (prefers-reduced-motion: no-preference) { .copy-flag { animation: cx-pop .35s var(--ease-out) both; } }
 .cx-typing { display: flex; gap: 5px; padding: 1rem 1.1rem; border-radius: 22px 22px 22px 6px; background: var(--bg-soft); }
 .cx-typing i { width: 7px; height: 7px; border-radius: 50%; background: var(--text-muted); opacity: .45; }
 

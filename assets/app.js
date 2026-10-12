@@ -696,6 +696,61 @@
     });
   }
 
+  /* ── Copy the email address ────────────────────────────────────────── */
+  // Every other channel opens a page or a file. Email copies instead, since
+  // plenty of visitors have no mail app wired to mailto links. If the
+  // clipboard is unavailable the link falls back to opening the mail app.
+  function copyText(text) {
+    if (navigator.clipboard && window.isSecureContext) return navigator.clipboard.writeText(text);
+    return new Promise(function (resolve, reject) {
+      var area = document.createElement('textarea');
+      area.value = text;
+      area.setAttribute('readonly', '');
+      area.style.cssText = 'position:fixed;opacity:0;pointer-events:none';
+      document.body.appendChild(area);
+      area.select();
+      var ok = false;
+      try { ok = document.execCommand('copy'); } catch (e) { /* unsupported */ }
+      area.remove();
+      if (ok) resolve(); else reject();
+    });
+  }
+
+  document.addEventListener('click', function (event) {
+    var link = event.target.closest('[data-copy]');
+    if (!link) return;
+    event.preventDefault();
+    copyText(link.dataset.copy).then(function () {
+      // The orbit swaps its address line for the confirmation; an inline
+      // address stays readable and gets a tag beside it.
+      var label = link.querySelector('[data-copy-label]');
+      var flag = null;
+      if (label) {
+        if (!link.dataset.copyHtml) link.dataset.copyHtml = label.innerHTML;
+        label.textContent = 'Copied!';
+      } else if (!link.nextElementSibling || !link.nextElementSibling.classList.contains('copy-flag')) {
+        flag = document.createElement('span');
+        flag.className = 'copy-flag';
+        flag.setAttribute('aria-hidden', 'true');
+        flag.textContent = 'Copied!';
+        link.after(flag);
+      }
+      link.classList.add('is-copied');
+      var note = document.getElementById('copyNote');
+      if (note) note.textContent = 'Email address copied to your clipboard.';
+      clearTimeout(link.copyTimer);
+      link.copyTimer = setTimeout(function () {
+        if (label) label.innerHTML = link.dataset.copyHtml;
+        var tag = link.nextElementSibling;
+        if (tag && tag.classList.contains('copy-flag')) tag.remove();
+        link.classList.remove('is-copied');
+        if (note) note.textContent = '';
+      }, 1600);
+    }, function () {
+      location.href = link.href;
+    });
+  });
+
   /* ── Email composer ────────────────────────────────────────────────── */
   // GitHub Pages serves static files only, so there is no server to post to.
   // This opens the visitor's own mail client with the message pre-filled.
@@ -752,10 +807,12 @@
       sendButton.style.translate = '';
       var hint = document.getElementById('cHint');
       if (hint) {
-        hint.textContent = 'Nothing opened? Write to me directly at ';
+        hint.textContent = 'Nothing opened? Click to copy my address: ';
         var direct = document.createElement('a');
         direct.href = 'mailto:' + composer.dataset.email;
         direct.textContent = composer.dataset.email;
+        direct.dataset.copy = composer.dataset.email;
+        direct.title = 'Copy email address';
         hint.appendChild(direct);
       }
       setTimeout(function () { location.href = mailto; }, motionOff() ? 0 : 550);
