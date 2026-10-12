@@ -788,6 +788,20 @@ figcaption {
 .cx-compose input:focus-visible, .cx-compose textarea:focus-visible { box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 25%, transparent); }
 .cx-send { flex: 0 0 auto; padding: .78rem 1.2rem; }
 .cx-compose .compose-hint { margin: .7rem 0 0 .3rem; }
+.cx-compose:not(.is-direct) .cx-email { display: none; }
+.cx-compose.is-direct .cx-row {
+  display: grid; align-items: end;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.3fr) auto;
+  grid-template-areas: "name email email" "note note send";
+}
+.cx-compose.is-direct #cName { grid-area: name; }
+.cx-compose.is-direct #cEmail { grid-area: email; }
+.cx-compose.is-direct #cNote { grid-area: note; }
+.cx-compose.is-direct .cx-send { grid-area: send; }
+.cx-compose.is-direct input { flex: none; }
+.cx-compose input#cEmail { background: var(--bg-soft); border-color: transparent; }
+.cx-compose .field-error { margin: .6rem 0 0 .3rem; }
+.cx-compose .field-error a { color: inherit; }
 
 /* The orbit. Every size comes off --w so the ring, the planets and their
    type shrink together on a phone instead of colliding. */
@@ -869,6 +883,7 @@ figcaption {
   .cx-row { flex-wrap: wrap; }
   .cx-compose input, .cx-compose textarea { flex: 1 1 100%; }
   .cx-send { margin-left: auto; }
+  .cx-compose.is-direct .cx-row { grid-template-columns: minmax(0, 1fr) auto; grid-template-areas: "name name" "email email" "note note" ". send"; }
 }
 
 .btn {

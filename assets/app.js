@@ -752,41 +752,48 @@
   });
 
   /* ── Email composer ────────────────────────────────────────────────── */
-  // GitHub Pages serves static files only, so there is no server to post to.
-  // This opens the visitor's own mail client with the message pre-filled.
+  // GitHub Pages serves static files only, so there is no server of our own.
+  // With a Web3Forms access key in the form, the message is posted there and
+  // lands in Saranyaa's inbox. Without one, the visitor's own mail app opens
+  // with the message pre-filled.
   var composer = document.getElementById('composer');
   if (composer) {
-    composer.addEventListener('submit', function (event) {
-      event.preventDefault();
-      if (composer.dataset.sent) return;
-      var nameField = document.getElementById('cName');
-      var noteField = document.getElementById('cNote');
-      var noteError = document.getElementById('cNoteError');
-      var name = (nameField.value || '').trim();
-      var note = (noteField.value || '').trim();
+    var keyField = composer.querySelector('[name="access_key"]');
+    var accessKey = keyField ? keyField.value.trim() : '';
+    var nameField = document.getElementById('cName');
+    var emailField = document.getElementById('cEmail');
+    var noteField = document.getElementById('cNote');
+    var noteError = document.getElementById('cNoteError');
+    var emailError = document.getElementById('cEmailError');
+    var sendError = document.getElementById('cSendError');
+    var sendButton = composer.querySelector('.cx-send');
+    var hint = document.getElementById('cHint');
+    var thread = document.querySelector('.cx-thread');
 
-      // Without this an empty form opened a blank email, which looks broken
-      // to the sender and tells Saranyaa nothing.
-      if (!note) {
-        if (noteError) noteError.hidden = false;
-        noteField.setAttribute('aria-invalid', 'true');
-        noteField.focus();
-        return;
-      }
-      if (noteError) noteError.hidden = true;
-      noteField.removeAttribute('aria-invalid');
-      var subject = name ? 'Portfolio enquiry from ' + name : 'Portfolio enquiry';
-      var lines = note ? [note] : [];
-      if (name) lines.push('', '— ' + name);
-      var mailto =
-        'mailto:' + composer.dataset.email +
-        '?subject=' + encodeURIComponent(subject) +
-        '&body=' + encodeURIComponent(lines.join('\n'));
+    if (accessKey) {
+      composer.classList.add('is-direct');
+      if (hint) hint.textContent = 'Goes straight to my inbox through Web3Forms, and I reply to the email you give.';
+    }
 
-      // One message, then the chat closes: there is nobody on the other end
-      // to answer, so the typing dots go and a receipt says where it went.
-      var thread = document.querySelector('.cx-thread');
-      if (!thread) { location.href = mailto; return; }
+    var flagField = function (field, error, bad) {
+      if (error) error.hidden = !bad;
+      if (bad) field.setAttribute('aria-invalid', 'true');
+      else field.removeAttribute('aria-invalid');
+    };
+
+    var copyLink = function () {
+      var link = document.createElement('a');
+      link.href = 'mailto:' + composer.dataset.email;
+      link.textContent = composer.dataset.email;
+      link.dataset.copy = composer.dataset.email;
+      link.title = 'Copy email address';
+      return link;
+    };
+
+    // One message, then the chat closes: there is nobody on the other end
+    // to answer, so the typing dots go and a receipt says where it went.
+    var postBubble = function (note, receiptText) {
+      if (!thread) return null;
       finishChat();
       var typing = thread.querySelector('.cx-typing');
       if (typing) typing.remove();
@@ -795,27 +802,112 @@
       mine.textContent = note;
       var receipt = document.createElement('li');
       receipt.className = 'cx-receipt';
-      receipt.textContent = 'Drafted in your email app. Hit send there and it reaches me.';
+      receipt.textContent = receiptText;
       thread.appendChild(mine);
       thread.appendChild(receipt);
+      return { mine: mine, receipt: receipt };
+    };
 
-      composer.dataset.sent = 'true';
-      [nameField, noteField].forEach(function (field) { field.readOnly = true; });
-      var sendButton = composer.querySelector('.cx-send');
-      sendButton.disabled = true;
-      sendButton.firstChild.textContent = 'Sent';
+    var setButton = function (label, disabled) {
+      sendButton.firstChild.textContent = label;
+      sendButton.disabled = disabled;
       sendButton.style.translate = '';
-      var hint = document.getElementById('cHint');
+    };
+
+    var closeChat = function (hintText) {
+      composer.dataset.sent = 'true';
+      [nameField, emailField, noteField].forEach(function (field) { field.readOnly = true; });
+      setButton('Sent', true);
       if (hint) {
-        hint.textContent = 'Nothing opened? Click to copy my address: ';
-        var direct = document.createElement('a');
-        direct.href = 'mailto:' + composer.dataset.email;
-        direct.textContent = composer.dataset.email;
-        direct.dataset.copy = composer.dataset.email;
-        direct.title = 'Copy email address';
-        hint.appendChild(direct);
+        hint.textContent = hintText;
+        hint.appendChild(copyLink());
       }
+    };
+
+    var sendByMailApp = function (name, note) {
+      var subject = name ? 'Portfolio enquiry from ' + name : 'Portfolio enquiry';
+      var lines = [note];
+      if (name) lines.push('', '— ' + name);
+      var mailto =
+        'mailto:' + composer.dataset.email +
+        '?subject=' + encodeURIComponent(subject) +
+        '&body=' + encodeURIComponent(lines.join('\n'));
+      if (!thread) { location.href = mailto; return; }
+      postBubble(note, 'Drafted in your email app. Hit send there and it reaches me.');
+      closeChat('Nothing opened? Click to copy my address: ');
       setTimeout(function () { location.href = mailto; }, motionOff() ? 0 : 550);
+    };
+
+    var sendDirect = function (name, email, note) {
+      var posted = postBubble(note, 'Sending…');
+      setButton('Sending', true);
+      if (sendError) sendError.hidden = true;
+
+      var payload = {
+        access_key: accessKey,
+        subject: name ? 'Portfolio enquiry from ' + name : 'Portfolio enquiry',
+        from_name: name || 'Portfolio visitor',
+        name: name,
+        email: email,
+        message: note
+      };
+      var abort = 'AbortController' in window ? new AbortController() : null;
+      var timer = setTimeout(function () { if (abort) abort.abort(); }, 15000);
+
+      fetch('https://api.web3forms.com/submit', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+        body: JSON.stringify(payload),
+        signal: abort ? abort.signal : undefined
+      })
+        .then(function (response) { return response.json(); })
+        .then(function (result) {
+          clearTimeout(timer);
+          if (!result || !result.success) throw new Error('rejected');
+          if (posted) posted.receipt.textContent = 'Delivered. I’ll reply to ' + email + '.';
+          closeChat('Sent. If you need my address too, click to copy it: ');
+        })
+        .catch(function () {
+          clearTimeout(timer);
+          // Nothing reached her, so the bubble comes back out of the thread
+          // and the message stays in the box to try again.
+          if (posted) { posted.mine.remove(); posted.receipt.remove(); }
+          setButton('Send', false);
+          if (sendError) {
+            sendError.textContent = 'That didn’t go through. Try again, or copy my address: ';
+            sendError.appendChild(copyLink());
+            sendError.hidden = false;
+          }
+        });
+    };
+
+    composer.addEventListener('submit', function (event) {
+      event.preventDefault();
+      if (composer.dataset.sent || sendButton.disabled) return;
+      var name = (nameField.value || '').trim();
+      var email = (emailField.value || '').trim();
+      var note = (noteField.value || '').trim();
+
+      // Without this an empty form sent a blank message, which looks broken
+      // to the sender and tells Saranyaa nothing.
+      flagField(noteField, noteError, !note);
+      var badEmail = !!accessKey && (!email || !emailField.checkValidity());
+      flagField(emailField, emailError, badEmail);
+      if (!note || badEmail) {
+        (badEmail ? emailField : noteField).focus();
+        return;
+      }
+
+      // Bots tick the hidden box; they get the same receipt and nothing is sent.
+      var trap = composer.querySelector('[name="botcheck"]');
+      if (trap && trap.checked) {
+        postBubble(note, 'Delivered.');
+        closeChat('Sent. ');
+        return;
+      }
+
+      if (accessKey) sendDirect(name, email, note);
+      else sendByMailApp(name, note);
     });
   }
 
