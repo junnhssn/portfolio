@@ -209,12 +209,26 @@
     });
     updateStack();
     updateRibbon();
+    updateOrbit();
+  }
+
+  // The contact orbit turns with the page, and the aster against it.
+  var orbitEl = document.querySelector('.cx .mo');
+  function updateOrbit() {
+    if (!orbitEl) return;
+    var r = orbitEl.getBoundingClientRect();
+    var vh = window.innerHeight;
+    if (r.bottom < 0 || r.top > vh) return;
+    var p = (vh - r.top) / (vh + r.height);
+    orbitEl.style.setProperty('--spin', ((p - 0.5) * 100).toFixed(2) + 'deg');
   }
 
   function clearMotion() {
     parallaxEls.forEach(function (el) { el.style.transform = ''; });
     clearStack();
     if (ribbonBand) ribbonBand.style.removeProperty('--slide');
+    if (orbitEl) orbitEl.style.removeProperty('--spin');
+    finishChat();
   }
 
   window.addEventListener('scroll', function () {
@@ -574,6 +588,84 @@
     else window.addEventListener('load', armPonder);
   }
 
+  /* ── Contact chat ──────────────────────────────────────────────────── */
+  // The conversation plays once, the first time the card is properly in
+  // view: typing dots, a bubble, typing dots, the next. The cue bubble sends
+  // the channels out of the aster. Without the script, or with motion off,
+  // the conversation is simply already finished.
+  var chat = document.querySelector('.cx');
+  var chatTimers = [];
+  function finishChat() {
+    if (!chat) return;
+    chatTimers.forEach(clearTimeout);
+    chatTimers = [];
+    chat.classList.remove('is-armed');
+    chat.classList.add('is-out');
+    chat.querySelector('.cx-thread').style.minHeight = '';
+  }
+
+  if (chat && !motionOff() && 'IntersectionObserver' in window) {
+    var bubbles = [].slice.call(chat.querySelectorAll('.cx-b'));
+    var dots = chat.querySelector('.cx-typing');
+    var thread = chat.querySelector('.cx-thread');
+    // Hold the finished thread's height, so the card does not grow under
+    // the reader as each bubble arrives.
+    thread.style.minHeight = thread.offsetHeight + 'px';
+    chat.classList.add('is-armed');
+
+    var later = function (fn, ms) { chatTimers.push(setTimeout(fn, ms)); };
+    var playChat = function () {
+      var t = 250;
+      bubbles.forEach(function (bubble, n) {
+        later(function () { dots.classList.add('is-in'); }, t);
+        t += n ? 1000 : 650;
+        later(function () {
+          dots.classList.remove('is-in');
+          bubble.classList.add('is-in');
+          if (bubble.classList.contains('cx-b--cue')) chat.classList.add('is-out');
+        }, t);
+        t += 300;
+      });
+      // The dots come back as an open invitation to reply.
+      later(function () {
+        dots.classList.add('is-in');
+        chat.classList.remove('is-armed');
+        thread.style.minHeight = '';
+      }, t + 1500);
+    };
+
+    var chatSeen = new IntersectionObserver(function (entries) {
+      if (!entries[0].isIntersecting) return;
+      chatSeen.disconnect();
+      if (motionOff()) finishChat();
+      else playChat();
+    }, { threshold: 0.3 });
+    chatSeen.observe(chat);
+  }
+
+  // Send leans toward a nearby pointer, so the one action here feels ready.
+  var sendBtn = chat && chat.querySelector('.cx-send');
+  var composeRow = chat && chat.querySelector('.cx-row');
+  if (sendBtn && composeRow && finePointer.matches) {
+    composeRow.addEventListener('pointermove', function (event) {
+      if (event.pointerType === 'touch' || motionOff()) return;
+      var r = sendBtn.getBoundingClientRect();
+      var dx = event.clientX - (r.left + r.width / 2);
+      var dy = event.clientY - (r.top + r.height / 2);
+      sendBtn.style.translate = Math.hypot(dx, dy) > 120 ? '' : (dx * 0.28).toFixed(1) + 'px ' + (dy * 0.28).toFixed(1) + 'px';
+    });
+    composeRow.addEventListener('pointerleave', function () { sendBtn.style.translate = ''; });
+  }
+
+  // The message box starts as one line and grows with what is typed.
+  var noteBox = document.getElementById('cNote');
+  if (noteBox) {
+    noteBox.addEventListener('input', function () {
+      noteBox.style.height = '';
+      if (noteBox.scrollHeight > noteBox.clientHeight) noteBox.style.height = (noteBox.scrollHeight + 2) + 'px';
+    });
+  }
+
   /* ── Email composer ────────────────────────────────────────────────── */
   // GitHub Pages serves static files only, so there is no server to post to.
   // This opens the visitor's own mail client with the message pre-filled.
@@ -600,10 +692,23 @@
       var subject = name ? 'Portfolio enquiry from ' + name : 'Portfolio enquiry';
       var lines = note ? [note] : [];
       if (name) lines.push('', '— ' + name);
-      location.href =
+      var mailto =
         'mailto:' + composer.dataset.email +
         '?subject=' + encodeURIComponent(subject) +
         '&body=' + encodeURIComponent(lines.join('\n'));
+
+      // The reply lands in the thread first, then the mail app takes over.
+      var thread = document.querySelector('.cx-thread');
+      if (!thread) { location.href = mailto; return; }
+      finishChat();
+      var mine = thread.querySelector('.cx-b--me');
+      if (!mine) {
+        mine = document.createElement('li');
+        mine.className = 'cx-b cx-b--me is-in';
+        thread.insertBefore(mine, thread.querySelector('.cx-typing'));
+      }
+      mine.textContent = note;
+      setTimeout(function () { location.href = mailto; }, motionOff() ? 0 : 550);
     });
   }
 
