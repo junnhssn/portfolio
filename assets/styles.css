@@ -121,6 +121,9 @@ a { color: inherit; text-decoration-color: var(--accent); text-underline-offset:
 a:hover { color: var(--accent); }
 
 :focus-visible { outline: 2.5px solid var(--accent); outline-offset: 3px; }
+/* Headings take focus only so a case study is announced when it opens; they
+   are not controls, so they get no ring. */
+h1[tabindex="-1"]:focus { outline: none; }
 
 .skip-link {
   position: absolute; left: 1rem; top: 0; z-index: 100;
@@ -761,7 +764,7 @@ figcaption {
 .cx-b--me { align-self: flex-end; border-radius: 22px 22px 6px 22px; background: var(--accent); color: var(--accent-ink); white-space: pre-line; }
 .cx-pt { display: inline-block; margin-left: .45rem; }
 .cx-receipt { align-self: flex-end; margin: -.2rem .4rem 0 0; font-size: .74rem; color: var(--text-dim); }
-.cx-send:disabled { cursor: default; filter: none; transform: none; }
+.cx-send:disabled, .cx-send[aria-disabled="true"] { cursor: default; filter: none; transform: none; }
 .cx-compose input:read-only, .cx-compose textarea:read-only { color: var(--text-dim); }
 .cx-compose .compose-hint a { color: var(--accent); }
 .copy-flag {

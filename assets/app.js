@@ -56,6 +56,7 @@
 
   var DEFAULT_A11Y = { textSize: 0, contrast: false, dyslexia: false, motion: false, links: false, spacing: false, cursor: false };
   var TEXT_STEPS = ['17px', '18.5px', '20px', '22px'];
+  var TEXT_STEP_NAMES = ['Default', 'Large', 'Larger', 'Largest'];
 
   var a11y;
   try {
@@ -84,7 +85,11 @@
       if (input) input.checked = !!a11y[key];
     });
     var range = document.getElementById('a11y-textSize');
-    if (range) range.value = step;
+    if (range) {
+      range.value = step;
+      // A screen reader would otherwise announce a bare "0" to "3".
+      range.setAttribute('aria-valuetext', TEXT_STEP_NAMES[step]);
+    }
 
     if (motionOff()) clearMotion();
     else updateParallax();
@@ -120,11 +125,23 @@
   var a11yFab = document.getElementById('a11yFab');
   var a11yPanel = document.getElementById('a11yPanel');
 
+  // Opening moves focus into the panel so a keyboard user does not have to
+  // tab the whole page to reach it. Closing hides the panel, so focus that
+  // was inside it goes back to the button rather than dropping to the page.
   function setPanel(open) {
     if (!a11yPanel || !a11yFab) return;
+    var wasOpen = a11yPanel.hasAttribute('open');
+    if (open === wasOpen) return;
+    var hadFocus = a11yPanel.contains(document.activeElement);
     if (open) a11yPanel.setAttribute('open', '');
     else a11yPanel.removeAttribute('open');
     a11yFab.setAttribute('aria-expanded', open ? 'true' : 'false');
+    if (open) {
+      var first = a11yPanel.querySelector('input, button');
+      if (first) first.focus();
+    } else if (hadFocus) {
+      a11yFab.focus();
+    }
   }
 
   if (a11yFab && a11yPanel) {
@@ -395,9 +412,25 @@
 
   // Delegated so images added to the HTML later need no extra wiring. The
   // decorative SVG shapes are excluded because they have no alt text.
+  var ZOOMABLE = '.shot, .community-card img';
+  function zoomableFrom(node) {
+    var img = node.closest && node.closest(ZOOMABLE);
+    if (!img || img.closest('.work-card-blank, a') || img.classList.contains('decor')) return null;
+    return img;
+  }
+
+  // An image is not focusable, so without this the enlarged view was
+  // reachable by mouse only. Each one becomes a button that names its image.
+  document.querySelectorAll(ZOOMABLE).forEach(function (img) {
+    if (!zoomableFrom(img)) return;
+    img.setAttribute('tabindex', '0');
+    img.setAttribute('role', 'button');
+    img.setAttribute('aria-label', 'Enlarge image' + (img.alt ? ': ' + img.alt : ''));
+  });
+
   document.addEventListener('click', function (event) {
-    var zoomable = event.target.closest('.shot, .community-card img');
-    if (zoomable && !zoomable.closest('.work-card-blank, a') && !zoomable.classList.contains('decor')) {
+    var zoomable = zoomableFrom(event.target);
+    if (zoomable) {
       openLightbox(zoomable);
       return;
     }
@@ -407,9 +440,27 @@
   });
 
   document.addEventListener('keydown', function (event) {
-    if (event.key !== 'Escape') return;
-    if (lightbox && lightbox.hasAttribute('open')) closeLightbox();
-    else setPanel(false);
+    var lightboxOpen = lightbox && lightbox.hasAttribute('open');
+
+    if (event.key === 'Escape') {
+      if (lightboxOpen) closeLightbox();
+      else setPanel(false);
+      return;
+    }
+    // The close button is the only control in the lightbox, so Tab stays on it
+    // rather than wandering into the page behind.
+    if (event.key === 'Tab' && lightboxOpen) {
+      event.preventDefault();
+      var close = document.getElementById('lightboxClose');
+      if (close) close.focus();
+      return;
+    }
+    if ((event.key === 'Enter' || event.key === ' ') && !lightboxOpen) {
+      var zoomable = zoomableFrom(event.target);
+      if (!zoomable) return;
+      event.preventDefault();
+      openLightbox(zoomable);
+    }
   });
 
   /* ── Routing ───────────────────────────────────────────────────────── */
@@ -421,9 +472,18 @@
 
   var currentView = null;
 
+  // A plain anchor that wraps or sits inside the open case study, such as the
+  // skip link's #main, keeps that case open instead of falling back to home.
+  function anchorKeepsCase(slug) {
+    var open = currentView && currentView !== 'home' ? document.getElementById(currentView) : null;
+    var anchor = document.getElementById(slug);
+    if (!open || !anchor) return null;
+    return anchor.contains(open) || open.contains(anchor) ? open : null;
+  }
+
   function route() {
     var slug = (location.hash || '').replace(/^#\/?/, '');
-    var target = slug ? document.getElementById('case-' + slug) : null;
+    var target = slug ? document.getElementById('case-' + slug) || anchorKeepsCase(slug) : null;
     var view = target ? target.id : 'home';
     var viewChanged = view !== currentView;
     currentView = view;
@@ -444,19 +504,53 @@
     return viewChanged;
   }
 
+  // The link that started a route change. The logo means "back to top", so
+  // only it skips the return to the case study's card on the way home.
+  var routeTrigger = null;
+  document.addEventListener('click', function (event) {
+    routeTrigger = event.target.closest('a[href^="#"]');
+  }, true);
+
+  // Opening a case study hides the card that was clicked, which would drop
+  // keyboard focus to the top of the document. Focus goes to the case
+  // study's heading instead, so a screen reader announces where you are.
+  function focusCaseHeading(caseEl) {
+    var heading = caseEl.querySelector('h1');
+    if (!heading) return;
+    heading.setAttribute('tabindex', '-1');
+    heading.focus({ preventScroll: true });
+  }
+
+  // Leaving a case study returns to its card, so you keep your place in the work list.
+  function returnToCard(caseId) {
+    var card = homeView && homeView.querySelector('a[href="#/' + caseId.replace(/^case-/, '') + '"]');
+    if (!card) return false;
+    card.scrollIntoView({ block: 'center' });
+    card.focus({ preventScroll: true });
+    return true;
+  }
+
   window.addEventListener('hashchange', function () {
+    var previousView = currentView;
     var viewChanged = route();
     var slug = (location.hash || '').replace(/^#\/?/, '');
     var section = slug ? document.getElementById(slug) : null;
+    var toTop = routeTrigger && routeTrigger.classList.contains('nav-logo');
+    routeTrigger = null;
 
-    if (section) {
+    if (section && !section.classList.contains('case')) {
       // A plain in-page anchor such as #work. Scrolling to top here would
       // override the browser's own jump, which is what broke the nav links.
       section.scrollIntoView({ behavior: motionOff() ? 'auto' : 'smooth', block: 'start' });
-    } else if (viewChanged) {
-      // Entering or leaving a case study starts at the top.
+    } else if (viewChanged && currentView !== 'home') {
+      // Entering a case study starts at the top.
       window.scrollTo(0, 0);
-      if (currentView === 'home') replayNameEntrance();
+      focusCaseHeading(document.getElementById(currentView));
+    } else if (viewChanged) {
+      if (toTop || !returnToCard(previousView)) {
+        window.scrollTo(0, 0);
+        replayNameEntrance();
+      }
     }
   });
 
@@ -678,7 +772,7 @@
   var composeRow = chat && chat.querySelector('.cx-row');
   if (sendBtn && composeRow && finePointer.matches) {
     composeRow.addEventListener('pointermove', function (event) {
-      if (event.pointerType === 'touch' || motionOff() || sendBtn.disabled) return;
+      if (event.pointerType === 'touch' || motionOff() || sendBtn.getAttribute('aria-disabled') === 'true') return;
       var r = sendBtn.getBoundingClientRect();
       var dx = event.clientX - (r.left + r.width / 2);
       var dy = event.clientY - (r.top + r.height / 2);
@@ -770,10 +864,29 @@
     var hint = document.getElementById('cHint');
     var thread = document.querySelector('.cx-thread');
 
+    // The form's own action posts to Web3Forms for visitors without the
+    // script. With it, the checks below replace the browser's validation
+    // bubbles with the inline errors.
+    composer.noValidate = true;
+
     if (accessKey) {
       composer.classList.add('is-direct');
-      if (hint) hint.textContent = 'Goes straight to my inbox through Web3Forms, and I reply to the email you give.';
+    } else {
+      emailField.required = false;
+      if (hint) hint.textContent = 'Opens your own email app with the message ready to send.';
     }
+
+    // The bubbles and receipt are visual. A screen reader hears the same
+    // progress through the page's polite live region. It sits after this
+    // script in the markup, so it is looked up when needed, not at load.
+    var announce = function (text) {
+      var liveNote = document.getElementById('copyNote');
+      if (liveNote) liveNote.textContent = text;
+    };
+
+    var isBusy = function () {
+      return sendButton.getAttribute('aria-disabled') === 'true';
+    };
 
     var flagField = function (field, error, bad) {
       if (error) error.hidden = !bad;
@@ -808,9 +921,12 @@
       return { mine: mine, receipt: receipt };
     };
 
+    // aria-disabled rather than disabled: a disabled button drops the focus
+    // of the visitor who just pressed it.
     var setButton = function (label, disabled) {
       sendButton.firstChild.textContent = label;
-      sendButton.disabled = disabled;
+      if (disabled) sendButton.setAttribute('aria-disabled', 'true');
+      else sendButton.removeAttribute('aria-disabled');
       sendButton.style.translate = '';
     };
 
@@ -834,6 +950,7 @@
         '&body=' + encodeURIComponent(lines.join('\n'));
       if (!thread) { location.href = mailto; return; }
       postBubble(note, 'Drafted in your email app. Hit send there and it reaches me.');
+      announce('Opening your email app with the message drafted.');
       closeChat('Nothing opened? Click to copy my address: ');
       setTimeout(function () { location.href = mailto; }, motionOff() ? 0 : 550);
     };
@@ -841,6 +958,7 @@
     var sendDirect = function (name, email, note) {
       var posted = postBubble(note, 'Sending…');
       setButton('Sending', true);
+      announce('Sending your message…');
       if (sendError) sendError.hidden = true;
 
       var payload = {
@@ -865,6 +983,7 @@
           clearTimeout(timer);
           if (!result || !result.success) throw new Error('rejected');
           if (posted) posted.receipt.textContent = 'Delivered. I’ll reply to ' + email + '.';
+          announce('Message delivered. Saranyaa will reply to ' + email + '.');
           closeChat('Sent. If you need my address too, click to copy it: ');
         })
         .catch(function () {
@@ -873,6 +992,7 @@
           // and the message stays in the box to try again.
           if (posted) { posted.mine.remove(); posted.receipt.remove(); }
           setButton('Send', false);
+          announce('');
           if (sendError) {
             sendError.textContent = 'That didn’t go through. Try again, or copy my address: ';
             sendError.appendChild(copyLink());
@@ -883,7 +1003,7 @@
 
     composer.addEventListener('submit', function (event) {
       event.preventDefault();
-      if (composer.dataset.sent || sendButton.disabled) return;
+      if (composer.dataset.sent || isBusy()) return;
       var name = (nameField.value || '').trim();
       var email = (emailField.value || '').trim();
       var note = (noteField.value || '').trim();

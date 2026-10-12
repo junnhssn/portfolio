@@ -43,7 +43,9 @@ Behaviour worth knowing about:
   `prefers-reduced-motion` and to the Reduce motion toggle
 - High contrast mode flattens the ink spreads and disables the grain, so the
   alternating palette cannot defeat it
-- The contact form composes a `mailto:` link; there is no backend
+- The contact form posts to Web3Forms, which forwards the message to her
+  inbox. It works without JavaScript too; with no access key in the form it
+  falls back to composing a `mailto:` link
 
 All 26 foreground/background pairs across both the cream and ink token sets
 meet WCAG AA (4.5:1).
