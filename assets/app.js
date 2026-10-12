@@ -643,12 +643,42 @@
     chatSeen.observe(chat);
   }
 
+  // One channel is picked at a time, Email until the visitor points at
+  // another. The aster turns the short way round toward the pick and leans
+  // in its direction, then settles back to the centre when the pointer goes.
+  var planets = orbitEl ? [].slice.call(orbitEl.querySelectorAll('.mo-b')) : [];
+  var aimTotal = 0;
+  var aimFrom = -90;
+  function pickPlanet(li) {
+    planets.forEach(function (p) { p.classList.toggle('is-sel', p === li); });
+    var spin = parseFloat(orbitEl.style.getPropertyValue('--spin')) || 0;
+    var deg = planets.indexOf(li) * 60 - 90 + spin;
+    var turn = ((deg - aimFrom) % 360 + 540) % 360 - 180;
+    aimTotal += turn;
+    aimFrom = deg;
+    var lean = orbitEl.offsetWidth * 0.05;
+    var rad = deg * Math.PI / 180;
+    orbitEl.style.setProperty('--aim', aimTotal.toFixed(1) + 'deg');
+    orbitEl.style.setProperty('--ax', (Math.cos(rad) * lean).toFixed(1) + 'px');
+    orbitEl.style.setProperty('--ay', (Math.sin(rad) * lean).toFixed(1) + 'px');
+  }
+  planets.forEach(function (li) {
+    li.addEventListener('pointerenter', function () { pickPlanet(li); });
+    li.addEventListener('focusin', function () { pickPlanet(li); });
+  });
+  if (orbitEl) {
+    orbitEl.addEventListener('pointerleave', function () {
+      orbitEl.style.removeProperty('--ax');
+      orbitEl.style.removeProperty('--ay');
+    });
+  }
+
   // Send leans toward a nearby pointer, so the one action here feels ready.
   var sendBtn = chat && chat.querySelector('.cx-send');
   var composeRow = chat && chat.querySelector('.cx-row');
   if (sendBtn && composeRow && finePointer.matches) {
     composeRow.addEventListener('pointermove', function (event) {
-      if (event.pointerType === 'touch' || motionOff()) return;
+      if (event.pointerType === 'touch' || motionOff() || sendBtn.disabled) return;
       var r = sendBtn.getBoundingClientRect();
       var dx = event.clientX - (r.left + r.width / 2);
       var dy = event.clientY - (r.top + r.height / 2);
@@ -673,6 +703,7 @@
   if (composer) {
     composer.addEventListener('submit', function (event) {
       event.preventDefault();
+      if (composer.dataset.sent) return;
       var nameField = document.getElementById('cName');
       var noteField = document.getElementById('cNote');
       var noteError = document.getElementById('cNoteError');
@@ -697,17 +728,36 @@
         '?subject=' + encodeURIComponent(subject) +
         '&body=' + encodeURIComponent(lines.join('\n'));
 
-      // The reply lands in the thread first, then the mail app takes over.
+      // One message, then the chat closes: there is nobody on the other end
+      // to answer, so the typing dots go and a receipt says where it went.
       var thread = document.querySelector('.cx-thread');
       if (!thread) { location.href = mailto; return; }
       finishChat();
-      var mine = thread.querySelector('.cx-b--me');
-      if (!mine) {
-        mine = document.createElement('li');
-        mine.className = 'cx-b cx-b--me is-in';
-        thread.insertBefore(mine, thread.querySelector('.cx-typing'));
-      }
+      var typing = thread.querySelector('.cx-typing');
+      if (typing) typing.remove();
+      var mine = document.createElement('li');
+      mine.className = 'cx-b cx-b--me is-in';
       mine.textContent = note;
+      var receipt = document.createElement('li');
+      receipt.className = 'cx-receipt';
+      receipt.textContent = 'Drafted in your email app. Hit send there and it reaches me.';
+      thread.appendChild(mine);
+      thread.appendChild(receipt);
+
+      composer.dataset.sent = 'true';
+      [nameField, noteField].forEach(function (field) { field.readOnly = true; });
+      var sendButton = composer.querySelector('.cx-send');
+      sendButton.disabled = true;
+      sendButton.firstChild.textContent = 'Sent';
+      sendButton.style.translate = '';
+      var hint = document.getElementById('cHint');
+      if (hint) {
+        hint.textContent = 'Nothing opened? Write to me directly at ';
+        var direct = document.createElement('a');
+        direct.href = 'mailto:' + composer.dataset.email;
+        direct.textContent = composer.dataset.email;
+        hint.appendChild(direct);
+      }
       setTimeout(function () { location.href = mailto; }, motionOff() ? 0 : 550);
     });
   }
